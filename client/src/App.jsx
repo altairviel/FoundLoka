@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
-import Landing from "../pages/landing";
+import Landing from "../pages/Landing";
 import InvestorDashboard from "../pages/Investordashboard";
 import UMKMDashboard from "../pages/Umkmdashboard";
 import CampaignPage from "../pages/Campaignpage";
