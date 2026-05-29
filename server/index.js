@@ -2,12 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
+require('./src/config/db');
 
 const app = express();
 
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: 'http://localhost:5173', //5173 untuk vite react
     credentials: true,
   }),
 );
