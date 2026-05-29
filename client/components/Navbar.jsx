@@ -1,14 +1,17 @@
 import { T } from "../styles/tokens";
 
-const NAV_LINKS = [
-  { id: "landing",   label: "Beranda" },
-  { id: "investor",  label: "Dashboard Investor" },
-  { id: "umkm",      label: "Dashboard UMKM" },
-  { id: "campaign",  label: "Campaign" },
-  { id: "analytics", label: "Analitik" },
-];
+export default function Navbar({ role, setRole, page, setPage }) {
+  // Susun menu secara dinamis berdasarkan role
+  const NAV_LINKS = [
+    { id: "landing", label: "Beranda" },
+    // Jika role = investor, tampilkan menu Dashboard Investor. Jika tidak, tampilkan Dashboard UMKM.
+    ...(role === "investor"
+      ? [{ id: "investor", label: "Dashboard Investor" }]
+      : [{ id: "umkm",     label: "Dashboard UMKM" }]),
+    { id: "campaign",  label: "Campaign" },
+    { id: "analytics", label: "Analitik" },
+  ];
 
-export default function Navbar({ page, setPage }) {
   return (
     <nav className="ff-nav">
       {/* Logo */}
@@ -20,7 +23,7 @@ export default function Navbar({ page, setPage }) {
         Folk<span>Fund</span>
       </div>
 
-      {/* Links */}
+      {/* Links Dinamis */}
       <div className="ff-nav-links">
         {NAV_LINKS.map((l) => (
           <button
@@ -33,13 +36,29 @@ export default function Navbar({ page, setPage }) {
         ))}
       </div>
 
-      {/* CTA */}
-      <button
-        className="ff-btn ff-btn-primary ff-btn-sm"
-        onClick={() => setPage("investor")}
-      >
-        Mulai Investasi
-      </button>
+      {/* Area CTA & Tombol Keluar */}
+      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+        {role === "investor" ? (
+          <button className="ff-btn ff-btn-primary ff-btn-sm" onClick={() => setPage("investor")}>
+            Mulai Investasi
+          </button>
+        ) : (
+          <button className="ff-btn ff-btn-primary ff-btn-sm" onClick={() => setPage("umkm")}>
+            Kelola Campaign
+          </button>
+        )}
+        
+        {/* Tombol Logout */}
+        <button
+          className="ff-btn ff-btn-sm"
+          style={{ background: "#fde8e8", color: "#8b1a1a", borderColor: "#fde8e8" }}
+          onClick={() => {
+            setRole(null); // Reset role ke null untuk kembali ke halaman login
+          }}
+        >
+          Keluar
+        </button>
+      </div>
     </nav>
   );
 }
