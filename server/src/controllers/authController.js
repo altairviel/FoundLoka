@@ -87,4 +87,24 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+//get api/auth/me, bergungsi untuk ngambil profil
+const getMe = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, email, role, phone, lat, lng, created_at
+       FROM users WHERE id = $1`,
+      [req.user.id], //req.user diisi oleh authMiddleware
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'User tidak ditemukan' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('GetMe error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
+module.exports = { register, login, getMe };
