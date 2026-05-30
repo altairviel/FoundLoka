@@ -16,7 +16,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// app.use('/api/auth', require('./src/routes/authRoutes'));
+app.use('/api/auth', require('./src/routes/authRoutes'));
 // app.use('/api/users', require('./src/routes/userRoutes'));
 // app.use('/api/campaigns', require('./src/routes/campaignRoutes'));
 // app.use('/api/investments', require('./src/routes/investmentRoutes'));

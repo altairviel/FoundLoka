@@ -45,3 +45,46 @@ const register = async (req, res) => {
     res.status(500).json({ message: 'Terjadi kesalahan server' });
   }
 };
+
+//post /api/auth/login, butuh email dan password
+const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email dan password wajib diisi' });
+  }
+
+  try {
+    //cari user berdasarkan email
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ message: 'Email atau password salah' });
+    }
+
+    const user = result.rows[0];
+
+    //membandingkan password input dengan yang udah hash di database
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Email atau password salah' });
+    }
+
+    //buat token
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    //hapus field password sebelum dikirim ke frontend
+    const { password: _, ...safeUser } = user;
+
+    res.json({
+      message: 'Login berhasil',
+      token,
+      user: safeUser,
+    });
+  } catch (err) {
+    console.error('Login error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
+module.exports = { register, login };
