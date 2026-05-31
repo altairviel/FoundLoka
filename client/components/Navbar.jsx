@@ -2,15 +2,26 @@ import { T } from "../styles/tokens";
 
 export default function Navbar({ role, setRole, page, setPage }) {
   // Susun menu secara dinamis berdasarkan role
-  const NAV_LINKS = [
-    { id: "landing", label: "Beranda" },
-    // Jika role = investor, tampilkan menu Dashboard Investor. Jika tidak, tampilkan Dashboard UMKM.
-    ...(role === "investor"
-      ? [{ id: "investor", label: "Dashboard Investor" }]
-      : [{ id: "umkm",     label: "Dashboard UMKM" }]),
-    { id: "campaign",  label: "Campaign" },
-    { id: "analytics", label: "Analitik" },
+const NAV_LINKS = [
+    { id: "landing", label: "Beranda" }
   ];
+
+  if (role === "investor") {
+    NAV_LINKS.push({
+      id: "investor",
+      label: "Dashboard Investor"
+    });
+  } else {
+    NAV_LINKS.push({
+      id: "umkm",
+      label: "Dashboard UMKM"
+    });
+  }
+
+  NAV_LINKS.push(
+    { id: "campaign", label: "Campaign" },
+    { id: "analytics", label: "Analitik" }
+  );
 
   return (
     <nav className="ff-nav">
