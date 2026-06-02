@@ -121,8 +121,9 @@ export default function Landing({ setPage }) {
       {/* FOOTER */}
       <footer style={{ borderTop: T.border, padding: "2rem 0", background: T.white }}>
         <div className="ff-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-          <div className="ff-nav-logo">Folk<span>Fund</span></div>
-          <p style={{ fontSize: 13, color: T.gray500 }}>© 2026 FolkFund · Jakarta, Indonesia · Terdaftar OJK</p>
+          <div className="ff-nav-logo">
+            <img src="/Folk Fund.png" alt="FolkFund Logo" style={{ height: "24px", objectFit: "contain" }} />
+          </div>
         </div>
       </footer>
     </div>
