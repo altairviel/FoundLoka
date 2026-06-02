@@ -18,7 +18,7 @@ const HOW_IT_WORKS = [
 
 const SECTORS = ["Kuliner", "Fashion", "Agrikultur", "Kerajinan", "Perikanan", "Teknologi"];
 
-export default function Landing({ setPage }) {
+export default function Landing({ role, setPage }) {
   return (
     <div>
       {/* HERO */}
@@ -37,12 +37,27 @@ export default function Landing({ setPage }) {
               Mulai dari Rp 100.000, dapatkan return hingga 18% per tahun.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <button className="ff-btn ff-btn-primary" style={{ padding: "10px 24px", fontSize: 15 }} onClick={() => setPage("campaign")}>
-                Lihat Campaign →
-              </button>
-              <button className="ff-btn" style={{ padding: "10px 24px", fontSize: 15 }} onClick={() => setPage("umkm")}>
-                Daftarkan UMKM
-              </button>
+              {role === "investor" ? (
+                // Tombol khusus jika yang login adalah Investor
+                <>
+                  <button className="ff-btn ff-btn-primary" style={{ padding: "10px 24px", fontSize: 15 }} onClick={() => setPage("campaign")}>
+                    Lihat Campaign →
+                  </button>
+                  <button className="ff-btn" style={{ padding: "10px 24px", fontSize: 15 }} onClick={() => setPage("investor")}>
+                    Dashboard Portofolio
+                  </button>
+                </>
+              ) : (
+                // Tombol khusus jika yang login adalah UMKM
+                <>
+                  <button className="ff-btn ff-btn-primary" style={{ padding: "10px 24px", fontSize: 15 }} onClick={() => setPage("umkm")}>
+                    Kelola Campaign UMKM →
+                  </button>
+                  <button className="ff-btn" style={{ padding: "10px 24px", fontSize: 15 }} onClick={() => setPage("campaign")}>
+                    Jelajahi Campaign Lain
+                  </button>
+                </>
+              )}
             </div>
             <p style={{ fontSize: 12, color: T.gray500, marginTop: 12 }}>
               Terdaftar &amp; diawasi OJK · Nomor izin: KEP-0012/OJK/2023

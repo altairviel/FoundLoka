@@ -76,28 +76,26 @@ export default function Auth({ setRole, setPage }) {
               <input className="ff-input" type="password" placeholder="••••••••" required />
             </div>
 
-            {/* Pilihan Role (Hanya muncul saat Register) */}
-            {isRegister && (
-              <div style={{ marginBottom: "2rem" }}>
-                <label className="ff-label">Saya ingin bergabung sebagai:</label>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginTop: "0.5rem" }}>
-                  <div 
-                    onClick={() => setSelectedRole("investor")}
-                    style={{ border: `2px solid ${selectedRole === "investor" ? T.green : T.gray200}`, background: selectedRole === "investor" ? T.greenLight : T.white, padding: "1rem", borderRadius: "8px", cursor: "pointer", textAlign: "center", transition: "all 0.2s" }}
-                  >
-                    <div style={{ fontSize: 24, marginBottom: 4 }}>📈</div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: selectedRole === "investor" ? T.greenDark : T.gray700 }}>Investor</div>
-                  </div>
-                  <div 
-                    onClick={() => setSelectedRole("umkm")}
-                    style={{ border: `2px solid ${selectedRole === "umkm" ? T.green : T.gray200}`, background: selectedRole === "umkm" ? T.greenLight : T.white, padding: "1rem", borderRadius: "8px", cursor: "pointer", textAlign: "center", transition: "all 0.2s" }}
-                  >
-                    <div style={{ fontSize: 24, marginBottom: 4 }}>🏪</div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: selectedRole === "umkm" ? T.greenDark : T.gray700 }}>Campaign UMKM</div>
-                  </div>
+            {/* Pilihan Role (Muncul terus untuk keperluan testing) */}
+            <div style={{ marginBottom: "2rem" }}>
+              <label className="ff-label">Saya masuk sebagai:</label>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginTop: "0.5rem" }}>
+                <div 
+                  onClick={() => setSelectedRole("investor")}
+                  style={{ border: `2px solid ${selectedRole === "investor" ? T.green : T.gray200}`, background: selectedRole === "investor" ? T.greenLight : T.white, padding: "1rem", borderRadius: "8px", cursor: "pointer", textAlign: "center", transition: "all 0.2s" }}
+                >
+                  <div style={{ fontSize: 24, marginBottom: 4 }}>📈</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: selectedRole === "investor" ? T.greenDark : T.gray700 }}>Investor</div>
+                </div>
+                <div 
+                  onClick={() => setSelectedRole("umkm")}
+                  style={{ border: `2px solid ${selectedRole === "umkm" ? T.green : T.gray200}`, background: selectedRole === "umkm" ? T.greenLight : T.white, padding: "1rem", borderRadius: "8px", cursor: "pointer", textAlign: "center", transition: "all 0.2s" }}
+                >
+                  <div style={{ fontSize: 24, marginBottom: 4 }}>🏪</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: selectedRole === "umkm" ? T.greenDark : T.gray700 }}>Campaign UMKM</div>
                 </div>
               </div>
-            )}
+            </div>
 
             <button type="submit" className="ff-btn ff-btn-primary" style={{ width: "100%", padding: "12px", fontSize: 15 }}>
               {isRegister ? "Daftar Sekarang" : "Masuk"}
