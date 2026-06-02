@@ -23,6 +23,7 @@ const generateInstallments = async (campaign_id, campaign) => {
   console.log(`${campaign.tenor_months} cicilan digenerate untuk kampanye ${campaign_id}`);
 };
 
+//POST api/investments
 const createInvestment = async (req, res) => {
   const { campaign_id, amount } = req.body;
   const investor_id = req.user.id;
@@ -92,4 +93,35 @@ const createInvestment = async (req, res) => {
   }
 };
 
-module.exports = { createInvestment };
+const getMyInvestments = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT
+        inv.*,
+        c.title, c.category, c.status   AS campaign_status,
+        c.return_rate, c.tenor_months,
+        c.collected_amount, c.target_amount,
+        u.name AS owner_name,
+        ROUND(inv.amount * (1 + c.return_rate / 100), 0) AS expected_return,
+        COALESCE((
+          SELECT COUNT(*) FROM installments
+          WHERE campaign_id = c.id AND status = 'paid'
+        ), 0)::int AS installments_paid
+      FROM investments inv
+      JOIN campaigns c ON inv.campaign_id = c.id
+      JOIN users    u ON c.owner_id       = u.id
+      WHERE inv.investor_id = $1
+      ORDER BY inv.created_at DESC
+    `,
+      [req.user.id],
+    );
+
+    res.json({ investments: result.rows });
+  } catch (err) {
+    console.error('Get my investments error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
+module.exports = { createInvestment, getMyInvestments };
