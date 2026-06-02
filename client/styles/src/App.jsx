@@ -22,7 +22,9 @@ export default function App() {
       <Navbar role={role} setRole={setRole} page={page} setPage={setPage} />
       
       {/* Route Switcher via State */}
-      {page === "landing"   && <Landing setPage={setPage} />}
+      {/* PASTIKAN ADA role={role} DI SINI 👇 */}
+      {page === "landing"   && <Landing role={role} setPage={setPage} />}
+      
       {page === "investor"  && <InvestorDashboard />}
       {page === "umkm"      && <UMKMDashboard />}
       {page === "campaign"  && <CampaignPage />}
