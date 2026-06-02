@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 
-//post /api/auth/register, role nnya investor/owner
+//POST /api/auth/register, role nnya investor/owner
 const register = async (req, res) => {
   const { name, email, password, role, phone, lat, lng } = req.body; //body berisi name, email, password, role, phone, lat, lng
 
@@ -46,7 +46,7 @@ const register = async (req, res) => {
   }
 };
 
-//post /api/auth/login, butuh email dan password
+//POST /api/auth/login, butuh email dan password
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -87,7 +87,7 @@ const login = async (req, res) => {
   }
 };
 
-//get api/auth/me, bergungsi untuk ngambil profil
+//GET api/auth/me, bergungsi untuk ngambil profil
 const getMe = async (req, res) => {
   try {
     const result = await pool.query(

@@ -1,6 +1,6 @@
 const pool = require('../config/db');
 
-//post api/campaigns, owner membuat campaign baru, status defaultnya 'pending'
+//POST api/campaigns, owner membuat campaign baru, status defaultnya 'pending'
 const createCampaign = async (req, res) => {
   const { title, description, category, target_amount, return_rate, tenor_months, lat, lng, address, deadline } = req.body;
 
@@ -28,7 +28,7 @@ const createCampaign = async (req, res) => {
   }
 };
 
-//get api/campaigns, nyari semua campaigns yang lagi berlangsung
+//GET api/campaigns, nyari semua campaigns yang lagi berlangsung
 const getCampaigns = async (req, res) => {
   const { lat, lng, radius = 5, category } = req.query;
 
@@ -79,7 +79,7 @@ const getCampaigns = async (req, res) => {
   }
 };
 
-// /api/campaigns/my, agar owner yang sedang login dapat melihat campaign nya
+//GET api/campaigns/my, agar owner yang sedang login dapat melihat campaign nya
 const getMyCampaigns = async (req, res) => {
   try {
     const result = await pool.query(
@@ -101,7 +101,7 @@ const getMyCampaigns = async (req, res) => {
   }
 };
 
-//get/api/campaigns/:id, mendapatkan info detail tentang satu campaign
+//GET /api/campaigns/:id, mendapatkan info detail tentang satu campaign
 const getCampaignById = async (req, res) => {
   const { id } = req.params;
 
@@ -161,7 +161,7 @@ const getCampaignById = async (req, res) => {
   }
 };
 
-//put api/campaigns/:id/proof, tempat owner upload URL foto bukti pembelian aset untuk milestone
+//PUT api/campaigns/:id/proof, tempat owner upload URL foto bukti pembelian aset untuk milestone
 const uploadProof = async (req, res) => {
   const { id } = req.params;
   const { proof_url } = req.body;
@@ -185,4 +185,20 @@ const uploadProof = async (req, res) => {
   }
 };
 
-module.exports = { createCampaign, getCampaigns, getMyCampaigns, getCampaignById, uploadProof };
+//GET api/campaigns//map,data ringkas untuk pin di Leaflet map
+const getMapData = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, title, category, status, lat, lng,
+             collected_amount, target_amount
+      FROM campaigns
+      WHERE status IN ('active', 'funded', 'repaying')
+    `);
+    res.json({ locations: result.rows });
+  } catch (err) {
+    console.error('Map data error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
+module.exports = { createCampaign, getCampaigns, getMyCampaigns, getCampaignById, uploadProof, getMapData };
