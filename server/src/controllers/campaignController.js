@@ -78,4 +78,111 @@ const getCampaigns = async (req, res) => {
     res.status(500).json({ message: 'Terjadi kesalahan server' });
   }
 };
-module.exports = { createCampaign, getCampaigns };
+
+// /api/campaigns/my, agar owner yang sedang login dapat melihat campaign nya
+const getMyCampaigns = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT c.*, COUNT(inv.id)::int AS investor_count
+      FROM campaigns c
+      LEFT JOIN investments inv ON c.id = inv.campaign_id
+      WHERE c.owner_id = $1
+      GROUP BY c.id
+      ORDER BY c.created_at DESC
+    `,
+      [req.user.id],
+    );
+
+    res.json({ campaigns: result.rows });
+  } catch (err) {
+    console.error('Get my campaigns error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
+//get/api/campaigns/:id, mendapatkan info detail tentang satu campaign
+const getCampaignById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    //data campaign, bisa melihat owner campaign dan progressnya
+    const campaign = await pool.query(
+      `
+      SELECT c.*,
+        u.name  AS owner_name,
+        u.phone AS owner_phone,
+        COUNT(inv.id)::int AS investor_count,
+        COALESCE(ROUND((c.collected_amount /
+          NULLIF(c.target_amount, 0)) * 100, 1), 0) AS progress_percent
+      FROM campaigns c
+      LEFT JOIN users u         ON c.owner_id = u.id
+      LEFT JOIN investments inv ON c.id = inv.campaign_id
+      WHERE c.id = $1
+      GROUP BY c.id, u.name, u.phone
+    `,
+      [id],
+    );
+
+    if (campaign.rows.length === 0) {
+      return res.status(404).json({ message: 'Kampanye tidak ditemukan' });
+    }
+
+    //daftar investor di kampanye ini
+    const investors = await pool.query(
+      `
+      SELECT u.name, inv.amount, inv.created_at
+      FROM investments inv
+      JOIN users u ON inv.investor_id = u.id
+      WHERE inv.campaign_id = $1
+      ORDER BY inv.created_at DESC
+    `,
+      [id],
+    );
+
+    //jadwal cicilan
+    const installments = await pool.query(
+      `
+      SELECT * FROM installments
+      WHERE campaign_id = $1
+      ORDER BY month_number ASC
+    `,
+      [id],
+    );
+
+    res.json({
+      campaign: campaign.rows[0],
+      investors: investors.rows,
+      installments: installments.rows,
+    });
+  } catch (err) {
+    console.error('Get campaign by id error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
+//put api/campaigns/:id/proof, tempat owner upload URL foto bukti pembelian aset untuk milestone
+const uploadProof = async (req, res) => {
+  const { id } = req.params;
+  const { proof_url } = req.body;
+
+  if (!proof_url) {
+    return res.status(400).json({ message: 'URL bukti wajib diisi' });
+  }
+
+  try {
+    //memastikan klw kampanye milik owner yang login
+    const check = await pool.query('SELECT id FROM campaigns WHERE id = $1 AND owner_id = $2', [id, req.user.id]);
+    if (check.rows.length === 0) {
+      return res.status(403).json({ message: 'Kampanye tidak ditemukan atau bukan milikmu' });
+    }
+
+    await pool.query('UPDATE campaigns SET proof_url = $1 WHERE id = $2', [proof_url, id]);
+    res.json({ message: 'Bukti pembelian berhasil diupload' });
+  } catch (err) {
+    console.error('Upload proof error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
+module.exports = { createCampaign, getCampaigns, getMyCampaigns, getCampaignById, uploadProof };
