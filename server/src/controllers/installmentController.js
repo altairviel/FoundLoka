@@ -38,4 +38,26 @@ const getCampaignInstallments = async (req, res) => {
   }
 };
 
-module.exports = { getCampaignInstallments };
+//GET api/installments/my, untuk dapat semua ciiclan dari semua kampanye milik owner yang sedang login
+const getMyInstallments = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT ins.*, c.title AS campaign_title,
+        c.target_amount, c.return_rate
+      FROM installments ins
+      JOIN campaigns c ON ins.campaign_id = c.id
+      WHERE c.owner_id = $1
+      ORDER BY ins.due_date ASC
+    `,
+      [req.user.id],
+    );
+
+    res.json({ installments: result.rows });
+  } catch (err) {
+    console.error('Get my installments error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
+module.exports = { getCampaignInstallments, getMyInstallments };
