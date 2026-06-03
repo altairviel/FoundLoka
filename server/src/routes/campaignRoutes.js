@@ -3,7 +3,7 @@ const router = express.Router();
 const { protect, ownerOnly } = require('../middleware/authMiddleware');
 const { createCampaign, getCampaigns, getMyCampaigns, getCampaignById, uploadProof, getMapData } = require('../controllers/campaignController');
 
-router.get('/map', getMapData); // publik
+router.get('/map', getMapData); // publik, api/campaigns/map
 router.get('/my', protect, ownerOnly, getMyCampaigns); //owner, api/campaigns/my
 
 router.post('/', protect, ownerOnly, createCampaign); //owner, api/campaigns

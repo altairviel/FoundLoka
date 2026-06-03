@@ -93,6 +93,8 @@ const createInvestment = async (req, res) => {
   }
 };
 
+
+//GET api/investments/my,  
 const getMyInvestments = async (req, res) => {
   try {
     const result = await pool.query(
