@@ -93,8 +93,7 @@ const createInvestment = async (req, res) => {
   }
 };
 
-
-//GET api/investments/my,  
+//GET api/investments/my,
 const getMyInvestments = async (req, res) => {
   try {
     const result = await pool.query(
@@ -126,4 +125,31 @@ const getMyInvestments = async (req, res) => {
   }
 };
 
-module.exports = { createInvestment, getMyInvestments };
+//GET api/investment/campaign/:id, semua investor di satu kampanye
+const getCampaignInvestors = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT
+        inv.id, inv.amount, inv.created_at,
+        u.name AS investor_name,
+        ROUND((inv.amount / NULLIF(c.target_amount, 0)) * 100, 1) AS ownership_percent
+      FROM investments inv
+      JOIN users    u ON inv.investor_id  = u.id
+      JOIN campaigns c ON inv.campaign_id = c.id
+      WHERE inv.campaign_id = $1
+      ORDER BY inv.amount DESC
+    `,
+      [id],
+    );
+
+    res.json({ investors: result.rows });
+  } catch (err) {
+    console.error('Get campaign investors error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
+module.exports = { createInvestment, getMyInvestments, getCampaignInvestors };
