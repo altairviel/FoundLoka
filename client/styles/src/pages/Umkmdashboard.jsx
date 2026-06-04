@@ -1,7 +1,7 @@
 import { T } from '../../tokens';
 import ProgressBar from '../components/ProgressBar';
 import { campaigns, umkmTransactions } from '../../dummyData';
-import { fmt, pct } from '../../../utils/format';
+import { fmt, pct } from '../utils/format';
 
 const campaign = campaigns[0]; // Warung Mak Cik Ijah
 
