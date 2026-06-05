@@ -1,6 +1,6 @@
 const pool = require('../config/db');
 
-// GET /api/admin/stats, untuk melihat statistik platform
+//GET /api/admin/stats, untuk melihat statistik platform
 const getStats = async (req, res) => {
   try {
     const [users, campaigns, investments] = await Promise.all([
@@ -26,7 +26,7 @@ const getStats = async (req, res) => {
   }
 };
 
-/* GET /api/admin/campaigns?status=pending */
+//GET /api/admin/campaigns?status=pending
 const getAllCampaigns = async (req, res) => {
   const { status } = req.query;
   try {
@@ -57,4 +57,26 @@ const getAllCampaigns = async (req, res) => {
     res.status(500).json({ message: 'Terjadi kesalahan server' });
   }
 };
-module.exports = { getStats, getAllCampaigns };
+
+//PUT /api/admin/campaigns/:id/approve
+const approveCampaign = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      `UPDATE campaigns SET status = 'active'
+       WHERE id = $1 AND status = 'pending' RETURNING *`,
+      [id],
+    );
+    if (result.rows.length === 0) return res.status(404).json({ message: 'Kampanye tidak ditemukan atau bukan pending' });
+
+    //kirim notifikasi ke pemilik UMKM
+    await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [result.rows[0].owner_id, `Kampanye "${result.rows[0].title}" telah disetujui dan sekarang aktif!`]);
+
+    res.json({ message: 'Kampanye berhasil disetujui', campaign: result.rows[0] });
+  } catch (err) {
+    console.error('Approve error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
+module.exports = { getStats, getAllCampaigns, approveCampaign };
