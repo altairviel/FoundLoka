@@ -1,5 +1,7 @@
 const { snap, coreApi } = require('../config/midtrans');
 const pool = require('../config/db');
+const crypto = require('crypto');
+
 const createInvestmentPayment = async (req, res) => {
   const { campaign_id, amount } = req.body;
   const investor_id = req.user.id;
@@ -161,4 +163,53 @@ const processInstallment = async (tx) => {
   console.log(`Cicilan bulan ke-${ins.month_number} lunas untuk kampanye ${tx.campaign_id}`);
 };
 
-module.exports = { createInvestmentPayment, createInstallmentPayment, processInstallment };
+const handleWebhook = async (req, res) => {
+  const notification = req.body;
+
+  try {
+    //verifikasi signature dari Midtrans agar tidak bisa dipalsukan
+    const { order_id, status_code, gross_amount, signature_key } = notification;
+
+    const expectedSignature = crypto.createHash('sha512').update(`${order_id}${status_code}${gross_amount}${process.env.MIDTRANS_SERVER_KEY}`).digest('hex');
+
+    if (signature_key !== expectedSignature) {
+      console.warn('⚠️  Webhook signature tidak valid!');
+      return res.status(403).json({ message: 'Signature tidak valid' });
+    }
+
+    //cek status transaksi
+    const transactionStatus = notification.transaction_status;
+    const fraudStatus = notification.fraud_status;
+
+    //ambil data transaksi dari database
+    const txResult = await pool.query('SELECT * FROM payment_transactions WHERE id = $1', [order_id]);
+    if (txResult.rows.length === 0) return res.status(404).json({ message: 'Transaksi tidak ditemukan' });
+
+    const tx = txResult.rows[0];
+
+    //pembayaran berhasil
+    if (transactionStatus === 'settlement' || (transactionStatus === 'capture' && fraudStatus === 'accept')) {
+      //update status transaksi
+      await pool.query('UPDATE payment_transactions SET status = $1 WHERE id = $2', ['success', order_id]);
+
+      if (tx.type === 'investment') {
+        //proses investasi
+        await processInvestment(tx);
+      } else if (tx.type === 'installment') {
+        //proses cicilan
+        await processInstallment(tx);
+      }
+
+      //pembayaran gagal atau expired
+    } else if (['cancel', 'deny', 'expire'].includes(transactionStatus)) {
+      await pool.query('UPDATE payment_transactions SET status = $1 WHERE id = $2', [transactionStatus, order_id]);
+    }
+
+    res.json({ message: 'Webhook diterima' });
+  } catch (err) {
+    console.error('Webhook error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
+module.exports = { createInvestmentPayment, createInstallmentPayment, processInstallment, handleWebhook };
