@@ -26,4 +26,35 @@ const getStats = async (req, res) => {
   }
 };
 
-module.exports = { getStats };
+/* GET /api/admin/campaigns?status=pending */
+const getAllCampaigns = async (req, res) => {
+  const { status } = req.query;
+  try {
+    const params = [];
+    let where = '';
+    if (status) {
+      params.push(status);
+      where = 'WHERE c.status = $1';
+    }
+
+    const result = await pool.query(
+      `
+      SELECT c.*, u.name AS owner_name, u.email AS owner_email,
+        COUNT(inv.id)::int AS investor_count
+      FROM campaigns c
+      LEFT JOIN users u ON c.owner_id = u.id
+      LEFT JOIN investments inv ON c.id = inv.campaign_id
+      ${where}
+      GROUP BY c.id, u.name, u.email
+      ORDER BY c.created_at DESC
+    `,
+      params,
+    );
+
+    res.json({ campaigns: result.rows });
+  } catch (err) {
+    console.error('Admin campaigns error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+module.exports = { getStats, getAllCampaigns };
