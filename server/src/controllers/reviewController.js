@@ -25,4 +25,27 @@ const createReview = async (req, res) => {
   }
 };
 
-module.exports = { createReview };
+/* GET /api/reviews/campaign/:id */
+const getCampaignReviews = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT r.*, u.name AS investor_name
+      FROM reviews r
+      JOIN users u ON r.investor_id = u.id
+      WHERE r.campaign_id = $1
+      ORDER BY r.created_at DESC
+    `,
+      [req.params.id],
+    );
+
+    const avg = result.rows.length > 0 ? (result.rows.reduce((s, r) => s + r.rating, 0) / result.rows.length).toFixed(1) : null;
+
+    res.json({ reviews: result.rows, average_rating: avg, total: result.rows.length });
+  } catch (err) {
+    console.error('Get reviews error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
+module.exports = { createReview, getCampaignReviews };
