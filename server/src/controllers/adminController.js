@@ -100,4 +100,24 @@ const rejectCampaign = async (req, res) => {
   }
 };
 
-module.exports = { getStats, getAllCampaigns, approveCampaign, rejectCampaign };
+//PUT /api/admin/campaigns/:id/disburse, admin akan mencairkan dana ke UMKM setelah kampanye fully funded
+const disburseCampaign = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      `UPDATE campaigns SET status = 'repaying'
+       WHERE id = $1 AND status = 'funded' RETURNING *`,
+      [id],
+    );
+    if (result.rows.length === 0) return res.status(404).json({ message: 'Kampanye tidak ditemukan atau belum funded' });
+
+    await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [result.rows[0].owner_id, `Dana kampanye "${result.rows[0].title}" telah dicairkan. Mulai bayar cicilan sesuai jadwal.`]);
+
+    res.json({ message: 'Dana berhasil dicairkan ke UMKM' });
+  } catch (err) {
+    console.error('Disburse error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+
+module.exports = { getStats, getAllCampaigns, approveCampaign, rejectCampaign, disburseCampaign };

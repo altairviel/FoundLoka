@@ -23,7 +23,7 @@ app.use('/api/investments', require('./src/routes/investmentRoutes'));
 app.use('/api/installments', require('./src/routes/installmentRoutes'));
 // app.use('/api/notifications', require('./src/routes/notificationRoutes'));
 // app.use('/api/reviews', require('./src/routes/reviewRoutes'));
-// app.use('/api/admin', require('./src/routes/adminRoutes'));
+app.use('/api/admin', require('./src/routes/adminRoutes'));
 
 //testing route
 app.get('/', (req, res) => {
