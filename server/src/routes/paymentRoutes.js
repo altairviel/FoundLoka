@@ -5,5 +5,6 @@ const { createInvestmentPayment, createInstallmentPayment } = require('../contro
 
 router.post('/invest', protect, createInvestmentPayment);
 router.post('/installment', protect, createInstallmentPayment);
+router.post('/webhook', handleWebhook); // tanpa protect — dipanggil Midtran
 
 module.exports = router;

@@ -137,4 +137,28 @@ const createInstallmentPayment = async (req, res) => {
   }
 };
 
-module.exports = { createInvestmentPayment, createInstallmentPayment };
+//helper, proses cicilan setelah pembayaran sukses
+const processInstallment = async (tx) => {
+  // Update status cicilan jadi paid
+  const insResult = await pool.query(
+    `UPDATE installments SET status = 'paid', paid_at = NOW()
+     WHERE id = $1 RETURNING *`,
+    [tx.installment_id],
+  );
+  const ins = insResult.rows[0];
+
+  //ngecek apakah semua cicilan sudah lunas
+  const remaining = await pool.query(
+    `SELECT COUNT(*) FROM installments
+     WHERE campaign_id = $1 AND status != 'paid'`,
+    [tx.campaign_id],
+  );
+
+  if (parseInt(remaining.rows[0].count) === 0) {
+    await pool.query(`UPDATE campaigns SET status = 'done' WHERE id = $1`, [tx.campaign_id]);
+  }
+
+  console.log(`Cicilan bulan ke-${ins.month_number} lunas untuk kampanye ${tx.campaign_id}`);
+};
+
+module.exports = { createInvestmentPayment, createInstallmentPayment, processInstallment };
