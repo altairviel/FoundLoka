@@ -28,4 +28,13 @@ const markAsRead = async (req, res) => {
   }
 };
 
-module.exports = { getNotifications, markAsRead };
+const markAllAsRead = async (req, res) => {
+  try {
+    await pool.query('UPDATE notifications SET is_read = true WHERE user_id = $1', [req.user.id]);
+    res.json({ message: 'Semua notifikasi ditandai sudah dibaca' });
+  } catch (err) {
+    console.error('Mark all read error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+module.exports = { getNotifications, markAsRead, markAllAsRead };
