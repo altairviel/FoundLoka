@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
-const { createInvestmentPayment, createInstallmentPayment } = require('../controllers/paymentController');
+const { createInvestmentPayment, createInstallmentPayment, handleWebhook, checkStatus } = require('../controllers/paymentController');
 
 router.post('/invest', protect, createInvestmentPayment);
 router.post('/installment', protect, createInstallmentPayment);
-router.post('/webhook', handleWebhook); // tanpa protect — dipanggil Midtran
+router.post('/webhook', handleWebhook); //tanpa protect, dipanggil Midtrans
+router.get('/status/:orderId', protect, checkStatus);
 
 module.exports = router;

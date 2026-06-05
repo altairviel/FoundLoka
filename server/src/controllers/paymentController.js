@@ -212,4 +212,13 @@ const handleWebhook = async (req, res) => {
   }
 };
 
-module.exports = { createInvestmentPayment, createInstallmentPayment, processInstallment, handleWebhook };
+const checkStatus = async (req, res) => {
+  try {
+    const status = await coreApi.transaction.status(req.params.orderId);
+    res.json(status);
+  } catch (err) {
+    console.error('Check status error:', err.message);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
+  }
+};
+module.exports = { createInvestmentPayment, createInstallmentPayment, processInstallment, handleWebhook, checkStatus };
