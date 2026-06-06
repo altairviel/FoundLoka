@@ -1,4 +1,4 @@
-import { T } from "../styles/tokens";
+import { T } from "../../tokens"
 
 export default function Navbar({ role, setRole, page, setPage }) {
 const NAV_LINKS = [

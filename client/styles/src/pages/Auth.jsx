@@ -154,7 +154,7 @@ export default function Auth({ setRole, setPage, setUser }) {
             satu UMKM pada satu waktu.
           </h1>
         </div>
-        <div style={{ fontSize: 13, color: T.greenLight, opacity: 0.8 }}>© 2026 FoundLoka. Terdaftar dan diawasi oleh OJK.</div>
+        <div style={{ fontSize: 13, color: T.greenLight, opacity: 0.8 }}>© 2026 Folk Fund. All rights reserved.</div>
       </div>
 
       {/* ── Kanan: Form ── */}
