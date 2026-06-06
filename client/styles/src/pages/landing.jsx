@@ -1,6 +1,6 @@
-import { T } from '../styles/tokens';
-import CampaignCard from '../styles/src/components/CampaignCard';
-import { campaigns } from '../styles/dummyData';
+import { T } from '../../tokens';
+import CampaignCard from '../../src/components/CampaignCard';
+import { campaigns } from '../../../styles/dummyData';
 
 const STATS = [
   { num: 'Rp 12,4M', label: 'Total Disalurkan' },

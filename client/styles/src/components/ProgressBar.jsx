@@ -1,4 +1,4 @@
-import { T } from "../styles/tokens";
+import { T } from "../../tokens";
 
 export default function ProgressBar({ value, height = 6, showLabel = false, label }) {
   const capped = Math.min(value, 100);

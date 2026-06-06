@@ -1,4 +1,4 @@
-import { T } from "../styles/tokens";
+import { T } from "../../tokens";
 import { fmt, pct } from "../utils/format";
 
 export default function CampaignCard({ c, onClick }) {

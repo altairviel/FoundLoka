@@ -1,4 +1,4 @@
-import { T } from "../styles/tokens";
+import { T } from "../../tokens";
 
 export default function Sidebar({ links, activeTab, setTab, footer }) {
   return (

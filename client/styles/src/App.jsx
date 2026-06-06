@@ -1,24 +1,19 @@
+// client/src/App.jsx
 import { useState } from 'react';
-import Navbar from '../src/components/Navbar';
-// import Landing from '../src/pages/landing';
-// import InvestorDashboard from '../src/pages/Investordashboard';
-// import UMKMDashboard from '../src/pages/Umkmdashboard';
-// import CampaignPage from '../src/pages/Campaignpage';
-// import Analytics from '../src/pages/Analytics';
-import Auth from '../src/pages/Auth';
-// import Profile from '../src/pages/Profile';
+import Navbar from './components/Navbar';
+import Auth from './pages/Auth';
+import Landing from './pages/Landing';
+import InvestorDashboard from './pages/InvestorDashboard';
+import UMKMDashboard from './pages/UMKMDashboard';
+import CampaignPage from './pages/CampaignPage';
+import Profile from './pages/Profile';
 
 export default function App() {
-  //tambahkan state user
-  //saat app pertama dibuka, coba ambil data user dari localStorage
-  //supaya kalau user refresh, tidak perlu login ulang
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
   });
 
-  //role diambil dari user di localStorage
-  //bukan null setiap kali refresh
   const [role, setRole] = useState(() => {
     const saved = localStorage.getItem('user');
     if (saved) return JSON.parse(saved).role;
@@ -27,24 +22,27 @@ export default function App() {
 
   const [page, setPage] = useState('landing');
 
-  // Kalau belum login, tampilkan Auth
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setRole(null);
+    setPage('landing');
+  };
+
   if (!role) {
-    return (
-      // ✅ Perbaikan 3 — oper setUser ke Auth
-      <Auth setRole={setRole} setPage={setPage} setUser={setUser} />
-    );
+    return <Auth setRole={setRole} setPage={setPage} setUser={setUser} />;
   }
 
   return (
     <div>
-      <Navbar role={role} setRole={setRole} page={page} setPage={setPage} />
+      <Navbar role={role} page={page} setPage={setPage} user={user} onLogout={handleLogout} />
 
-      {/* {page === 'landing' && <Landing role={role} setPage={setPage} />}
-      {page === 'investor' && <InvestorDashboard />}
-      {page === 'umkm' && <UMKMDashboard />}
-      {page === 'campaign' && <CampaignPage />}
-      {page === 'analytics' && <Analytics />}
-      {page === 'profile' && <Profile role={role} />} */}
+      {page === 'landing'  && <Landing role={role} setPage={setPage} />}
+      {page === 'investor' && role === 'investor' && <InvestorDashboard user={user} setPage={setPage} />}
+      {page === 'umkm'     && role === 'owner'    && <UMKMDashboard user={user} />}
+      {page === 'campaign' && <CampaignPage role={role} />}
+      {page === 'profile'  && <Profile user={user} setUser={setUser} role={role} />}
     </div>
   );
 }
