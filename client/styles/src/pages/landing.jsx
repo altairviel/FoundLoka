@@ -1,6 +1,7 @@
 import { T } from '../../tokens';
 import CampaignCard from '../../src/components/CampaignCard';
-import { campaigns } from '../../../styles/dummyData';
+import { useState, useEffect } from 'react';
+import { getCampaigns } from '../services/campaign';
 
 const STATS = [
   { num: 'Rp 12,4M', label: 'Total Disalurkan' },
@@ -8,7 +9,6 @@ const STATS = [
   { num: '312', label: 'UMKM Didanai' },
   { num: '14,2%', label: 'Rata-rata Return' },
 ];
-
 const HOW_IT_WORKS = [
   { n: '01', title: 'Daftar akun', desc: 'Verifikasi KTP dan rekening bank kamu dalam 5 menit.' },
   { n: '02', title: 'Pilih campaign', desc: 'Browse UMKM yang sudah terverifikasi tim kami.' },
@@ -17,8 +17,36 @@ const HOW_IT_WORKS = [
 ];
 
 const SECTORS = ['Kuliner', 'Fashion', 'Agrikultur', 'Kerajinan', 'Perikanan', 'Teknologi'];
-
+function normalizeCampaign(c) {
+  return {
+    ...c,
+    name: c.name || c.title || '—',
+    sector: c.sector || c.category || '—',
+    raised: parseFloat(c.raised ?? c.collected_amount ?? 0),
+    target: parseFloat(c.target ?? c.target_amount ?? 1),
+    return: c.return ?? (c.return_rate != null ? `${c.return_rate}%` : '—'),
+    tenor: c.tenor ?? (c.tenor_months != null ? `${c.tenor_months} bln` : '—'),
+    investors: c.investors ?? c.investor_count ?? 0,
+    desc: c.desc || c.description || '',
+    img: c.img || c.icon || '🏪',
+    risk: c.risk || c.risk_level || '—',
+    location: c.location || c.address || '—',
+  };
+}
 export default function Landing({ role, setPage }) {
+  const [campaigns, setCampaigns] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getCampaigns()
+      .then(({ data }) => {
+        const raw = data.campaigns || [];
+        // Gunakan .map() untuk menyaring data mentah menjadi format yang benar
+        setCampaigns(raw.map(normalizeCampaign));
+      })
+      .catch((err) => console.error('Gagal fetch kampanye:', err.message))
+      .finally(() => setLoading(false));
+  }, []);
   return (
     <div>
       {/* HERO */}
@@ -86,15 +114,32 @@ export default function Landing({ role, setPage }) {
               <h2 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em' }}>Campaign aktif sekarang</h2>
               <p style={{ color: T.gray500, marginTop: 4, fontSize: 14 }}>Semua UMKM telah melalui proses verifikasi tim lapangan kami.</p>
             </div>
-            <button className="ff-btn ff-btn-sm" onClick={() => setPage('campaign')}>
+            <button className="ff-btn ff-btn-sm" onClick={() => setPage('campaigns')}>
               Lihat semua →
             </button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px,1fr))', gap: '1rem' }}>
-            {campaigns.slice(0, 3).map((c) => (
-              <CampaignCard key={c.id} c={c} onClick={() => setPage('campaign')} />
-            ))}
-          </div>
+
+          {/* Loading */}
+          {loading && <p style={{ textAlign: 'center', color: T.gray500, padding: '2rem' }}>Memuat kampanye...</p>}
+
+          {/* Tidak ada kampanye */}
+          {!loading && campaigns.length === 0 && <p style={{ textAlign: 'center', color: T.gray500, padding: '2rem' }}>Belum ada kampanye aktif saat ini.</p>}
+
+          {/* ✅ Data dari database */}
+          {!loading && campaigns.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px,1fr))', gap: '1rem' }}>
+              {campaigns.slice(0, 3).map((c) => (
+                <CampaignCard
+                  key={c.id}
+                  campaign={c}
+                  onClick={() => {
+                    localStorage.setItem('selectedCampaignId', c.id);
+                    setPage('campaign-detail');
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

@@ -1,8 +1,8 @@
 /** Format angka ke Rupiah. Contoh: 1500000 → "Rp 1.500.000" */
 export const fmt = (n) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
+  new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
     maximumFractionDigits: 0,
   }).format(n);
 
