@@ -2,23 +2,28 @@
 import { useState, useEffect } from 'react';
 import { T } from '../../tokens';
 import StatCard from '../components/StatCard';
-import { getMe } from '../services/user';
-import api from '../services/api'; // Menggunakan instance api untuk proses PUT update
+import { getMe, updateProfile, updatePassword } from '../services/user';
 
 export default function Profile({ user, setUser, role }) {
   const [profile, setProfile] = useState(user);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError]     = useState('');
   const [success, setSuccess] = useState('');
 
-  // ✅ BARU: State untuk menangani mode editing profil
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ name: '', phone: '' });
+  const [isEditing, setIsEditing]         = useState(false);
+  const [editForm, setEditForm]           = useState({ name: '', phone: '' });
   const [updateLoading, setUpdateLoading] = useState(false);
+
+  // Tab ubah password
+  const [showPasswordForm, setShowPasswordForm]     = useState(false);
+  const [passwordForm, setPasswordForm]             = useState({ oldPassword: '', newPassword: '', confirmNew: '' });
+  const [passwordLoading, setPasswordLoading]       = useState(false);
+  const [passwordError, setPasswordError]           = useState(''); // ✅ State khusus error password
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        // Backend: GET /api/auth/me
         const { data } = await getMe();
         setProfile(data);
         setEditForm({ name: data.name || '', phone: data.phone || '' });
@@ -38,12 +43,11 @@ export default function Profile({ user, setUser, role }) {
     ? profile.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
     : '?';
 
-  // ✅ BARU: Handler perubahan input edit
   const handleInputChange = (e) => {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
   };
 
-  // ✅ BARU: Handler kirim data update ke back-end
+  // PUT /api/users/profile  { name, phone }
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     if (!editForm.name.trim()) return setError('Nama lengkap tidak boleh kosong');
@@ -53,24 +57,48 @@ export default function Profile({ user, setUser, role }) {
     setSuccess('');
 
     try {
-      // Mengirim request PUT ke endpoint update profile (/auth/update atau /user/update sesuai setelan backend)
-      const { data } = await api.put('/auth/update-profile', {
-        name: editForm.name,
-        phone: editForm.phone,
-      });
-
-      // Update state lokal komponen
-      setProfile(data.user || data);
-      localStorage.setItem('user', JSON.stringify(data.user || data));
-      if (setUser) setUser(data.user || data);
-
+      const { data } = await updateProfile({ name: editForm.name, phone: editForm.phone });
+      const updated = data.user || data;
+      setProfile(updated);
+      localStorage.setItem('user', JSON.stringify(updated));
+      if (setUser) setUser(updated);
       setSuccess('Profil berhasil diperbarui!');
       setIsEditing(false);
     } catch (err) {
-      console.error(err);
       setError(err.response?.data?.message || 'Gagal memperbarui profil. Silakan coba lagi.');
     } finally {
       setUpdateLoading(false);
+    }
+  };
+
+  // PUT /api/users/password  { oldPassword, newPassword }
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    setPasswordError(''); 
+    setError('');         
+    setSuccess('');
+
+    if (!passwordForm.oldPassword || !passwordForm.newPassword) return setPasswordError('Semua field password wajib diisi');
+    if (passwordForm.newPassword.length < 6) return setPasswordError('Password baru minimal 6 karakter');
+    if (passwordForm.newPassword !== passwordForm.confirmNew) return setPasswordError('Konfirmasi password tidak cocok');
+
+    setPasswordLoading(true);
+
+    try {
+      await updatePassword({ oldPassword: passwordForm.oldPassword, newPassword: passwordForm.newPassword });
+      setSuccess('Password berhasil diubah!');
+      setShowPasswordForm(false);
+      setPasswordForm({ oldPassword: '', newPassword: '', confirmNew: '' });
+    } catch (err) {
+      // ✅ Menangkap respons khusus dari back-end
+      const backendMessage = err.response?.data?.message;
+      if (backendMessage === 'Password lama tidak benar') {
+        setPasswordError('Password lama yang Anda masukkan masih salah.');
+      } else {
+        setPasswordError(backendMessage || 'Gagal mengubah password. Pastikan password lama benar.');
+      }
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -81,13 +109,9 @@ export default function Profile({ user, setUser, role }) {
   );
 
   const inputStyle = {
-    width: '100%',
-    padding: '8px 12px',
-    fontSize: 14,
-    border: `1px solid ${T.gray200}`,
-    borderRadius: 6,
-    outline: 'none',
-    boxSizing: 'border-box'
+    width: '100%', padding: '8px 12px', fontSize: 14,
+    border: `1px solid ${T.gray200}`, borderRadius: 6,
+    outline: 'none', boxSizing: 'border-box',
   };
 
   return (
@@ -134,16 +158,16 @@ export default function Profile({ user, setUser, role }) {
                   </div>
                 </div>
               </div>
-              
-              {/* ✅ Tombol trigger edit */}
               {!isEditing && (
-                <button 
+                <button
                   onClick={() => {
                     setIsEditing(true);
                     setEditForm({ name: profile?.name || '', phone: profile?.phone || '' });
+                    setError('');
+                    setSuccess('');
                   }}
                   className="ff-btn"
-                  style={{ padding: '8px 16px', background: T.white, border: `1px solid ${T.gray300}`, borderRadius: 6, cursor: 'pointer', fontSize: 14 }}
+                  style={{ padding: '8px 16px' }}
                 >
                   Edit Profil
                 </button>
@@ -153,9 +177,8 @@ export default function Profile({ user, setUser, role }) {
             {/* Info detail / Form Edit */}
             <div className="ff-card">
               <h3 style={{ fontWeight: 600, marginBottom: '1rem' }}>Informasi Akun</h3>
-              
+
               {isEditing ? (
-                // ✅ TAMPILAN MODE EDIT FORM
                 <form onSubmit={handleUpdateProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: T.gray700, marginBottom: 6 }}>Nama Lengkap</label>
@@ -167,20 +190,19 @@ export default function Profile({ user, setUser, role }) {
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: T.gray500, marginBottom: 4 }}>Email (Tidak dapat diubah)</label>
-                    <input style={{ ...inputStyle, background: T.gray100, color: T.gray400, cursor: 'not-allowed' }} type="text" value={profile?.email} disabled />
+                    <input style={{ ...inputStyle, background: T.gray100, color: T.gray500, cursor: 'not-allowed' }} type="text" value={profile?.email} disabled />
                   </div>
-                  
-                  <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-                    <button 
-                      type="button" 
-                      onClick={() => { setIsEditing(false); setError(''); }} 
-                      style={{ padding: '8px 16px', background: T.white, border: `1px solid ${T.gray300}`, borderRadius: 6, cursor: 'pointer', fontSize: 14 }}
+                  <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                    <button
+                      type="button"
+                      onClick={() => { setIsEditing(false); setError(''); }}
+                      style={{ ...inputStyle, width: 'auto', padding: '8px 16px', cursor: 'pointer', background: T.white, border: `1px solid ${T.gray300}` }}
                       disabled={updateLoading}
                     >
                       Batal
                     </button>
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       style={{ padding: '8px 16px', background: T.green, color: T.white, border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, opacity: updateLoading ? 0.7 : 1 }}
                       disabled={updateLoading}
                     >
@@ -189,7 +211,6 @@ export default function Profile({ user, setUser, role }) {
                   </div>
                 </form>
               ) : (
-                // TAMPILAN DATA BIASA
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: 14 }}>
                   {[
                     ['Nama Lengkap', profile?.name],
@@ -204,6 +225,56 @@ export default function Profile({ user, setUser, role }) {
                     </div>
                   ))}
                 </div>
+              )}
+            </div>
+
+            {/* Ubah Password */}
+            <div className="ff-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showPasswordForm ? '1rem' : 0 }}>
+                <h3 style={{ fontWeight: 600 }}>Ubah Password</h3>
+                <button
+                  className="ff-btn ff-btn-sm"
+                  onClick={() => { setShowPasswordForm((p) => !p); setError(''); setSuccess(''); setPasswordError(''); }}
+                >
+                  {showPasswordForm ? 'Tutup' : 'Ubah'}
+                </button>
+              </div>
+
+              {showPasswordForm && (
+                <form onSubmit={handleUpdatePassword} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: 4 }}>
+                  
+                  {/* ✅ Pesan Error Khusus Password */}
+                  {passwordError && (
+                    <div style={{ background: '#FEE2E2', color: '#B91C1C', fontSize: 13, padding: '8px 12px', borderRadius: 6 }}>
+                      ⚠️ {passwordError}
+                    </div>
+                  )}
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: T.gray700, marginBottom: 6 }}>Password Lama</label>
+                    <input style={inputStyle} type="password" value={passwordForm.oldPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })} required />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: T.gray700, marginBottom: 6 }}>Password Baru</label>
+                    <input style={inputStyle} type="password" value={passwordForm.newPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} required />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: T.gray700, marginBottom: 6 }}>Konfirmasi Password Baru</label>
+                    <input style={inputStyle} type="password" value={passwordForm.confirmNew}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, confirmNew: e.target.value })} required />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      type="submit"
+                      style={{ padding: '8px 16px', background: T.green, color: T.white, border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, opacity: passwordLoading ? 0.7 : 1 }}
+                      disabled={passwordLoading}
+                    >
+                      {passwordLoading ? 'Menyimpan...' : 'Simpan Password'}
+                    </button>
+                  </div>
+                </form>
               )}
             </div>
           </div>
