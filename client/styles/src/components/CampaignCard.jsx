@@ -1,7 +1,10 @@
+import { useNavigate } from 'react-router-dom'; // 👈 1. Import useNavigate
 import { T } from '../../tokens';
 import { fmt, pct } from '../utils/format';
 
-export default function CampaignCard({ campaign, onClick }) {
+export default function CampaignCard({ campaign }) {
+  // 👈 2. Hapus prop onClick karena dihandle internal
+  const navigate = useNavigate(); // 👈 3. Inisialisasi hook navigate
   const c = campaign;
 
   if (!c) {
@@ -10,8 +13,15 @@ export default function CampaignCard({ campaign, onClick }) {
   }
 
   const progress = pct(c.raised, c.target);
+
+  // 👈 4. Fungsi helper untuk navigasi ke detail kampanye
+  const handleNavigateToDetail = () => {
+    localStorage.setItem('selectedCampaignId', c.id); // Simpan ID kampanye ke local storage
+    navigate('/campaign-detail'); // Arahkan ke rute detail
+  };
+
   return (
-    <div className="ff-card" style={{ cursor: 'pointer' }} onClick={onClick}>
+    <div className="ff-card" style={{ cursor: 'pointer' }} onClick={handleNavigateToDetail}>
       {/* Header row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
         <div style={{ fontSize: 28 }}>{c.img}</div>
@@ -61,8 +71,8 @@ export default function CampaignCard({ campaign, onClick }) {
           <button
             className="ff-btn ff-btn-primary ff-btn-sm"
             onClick={(e) => {
-              e.stopPropagation();
-              onClick();
+              e.stopPropagation(); // 👈 Mencegah double-trigger klik kontainer kartu
+              handleNavigateToDetail(); // 👈 Panggil fungsi navigasi
             }}
           >
             Investasi Sekarang

@@ -1,5 +1,6 @@
 // client/styles/src/App.jsx
 import { useState } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'; // 👈 Import tools routing
 import Navbar from './components/Navbar';
 import Auth from './pages/Auth';
 import Landing from './pages/landing';
@@ -10,17 +11,21 @@ import CampaignDetail from './pages/CampaignDetail';
 import CreateCampaign from './pages/CreateCampaign';
 import Installments from './pages/Installments';
 import Profile from './pages/Profile';
+import MapView from './pages/MapView'; // 👈 1. Import MapView baru kamu di sini
 
 export default function App() {
+  const navigate = useNavigate(); // Hook untuk mengontrol perpindahan URL via kode
+
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
   });
+
   const [role, setRole] = useState(() => {
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved).role : null;
   });
-  const [page, setPage]                         = useState('landing');
+
   const [selectedCampaign, setSelectedCampaign] = useState(null);
 
   const handleLogout = () => {
@@ -28,50 +33,45 @@ export default function App() {
     localStorage.removeItem('user');
     setUser(null);
     setRole(null);
-    setPage('landing');
+    navigate('/'); // 👈 Otomatis tendang ke landing page saat logout
   };
 
+  // Jika belum login, kunci layar di halaman Auth
   if (!role) {
-    return <Auth setRole={setRole} setPage={setPage} setUser={setUser} />;
+    return <Auth setRole={setRole} setUser={setUser} />;
   }
 
   return (
     <div>
-      <Navbar role={role} page={page} setPage={setPage} user={user} onLogout={handleLogout} />
+      {/* 💡 Prop page dan setPage dihapus karena Navbar sekarang mandiri membaca URL */}
+      <Navbar role={role} user={user} onLogout={handleLogout} />
 
-      {page === 'landing' && (
-        <Landing role={role} setPage={setPage} setSelectedCampaign={setSelectedCampaign} />
-      )}
-      {page === 'campaign' && (
-        <CampaignPage role={role} setPage={setPage} setSelectedCampaign={setSelectedCampaign} />
-      )}
-      {page === 'campaignDetail' && selectedCampaign && (
-        <CampaignDetail campaign={selectedCampaign} role={role} onBack={() => setPage('campaign')} />
-      )}
+      {/* 🚀 PEMETAAN RUTE URL BARU UNTUK PROYEK KOMPETISI */}
+      <Routes>
+        {/* Halaman Publik & Umum */}
+        <Route path="/" element={<Landing role={role} setSelectedCampaign={setSelectedCampaign} />} />
+        <Route path="/campaign" element={<CampaignPage role={role} setSelectedCampaign={setSelectedCampaign} />} />
 
-      {/* Owner only */}
-      {page === 'createCampaign' && role === 'owner' && (
-        <CreateCampaign
-          user={user}
-          onSuccess={() => setPage('umkm')}
-          onCancel={() => setPage('umkm')}
-        />
-      )}
-      {page === 'installments' && role === 'owner' && (
-        <Installments onBack={() => setPage('umkm')} />
-      )}
-      {page === 'umkm' && role === 'owner' && (
-        <UMKMDashboard user={user} setPage={setPage} />
-      )}
+        {/* 🗺️ RUTE MAP BARU */}
+        <Route path="/map" element={<MapView role={role} setSelectedCampaign={setSelectedCampaign} />} />
 
-      {/* Investor only */}
-      {page === 'investor' && role === 'investor' && (
-        <InvestorDashboard user={user} setPage={setPage} setSelectedCampaign={setSelectedCampaign} />
-      )}
+        {/* Halaman Detail (Proteksi: Jika data campaign kosong/F5, balikkan ke /campaign) */}
+        <Route path="/campaign-detail" element={selectedCampaign ? <CampaignDetail campaign={selectedCampaign} role={role} onBack={() => navigate('/campaign')} /> : <Navigate to="/campaign" />} />
 
-      {page === 'profile' && (
-        <Profile user={user} setUser={setUser} role={role} />
-      )}
+        {/* 🔒 Proteksi Rute Khusus Owner UMKM */}
+        <Route path="/umkm" element={role === 'owner' ? <UMKMDashboard user={user} /> : <Navigate to="/" />} />
+        <Route path="/create-campaign" element={role === 'owner' ? <CreateCampaign user={user} onSuccess={() => navigate('/umkm')} onCancel={() => navigate('/umkm')} /> : <Navigate to="/" />} />
+        <Route path="/installments" element={role === 'owner' ? <Installments onBack={() => navigate('/umkm')} /> : <Navigate to="/" />} />
+
+        {/* 🔒 Proteksi Rute Khusus Investor */}
+        <Route path="/investor" element={role === 'investor' ? <InvestorDashboard user={user} setSelectedCampaign={setSelectedCampaign} /> : <Navigate to="/" />} />
+
+        {/* Rute Profil */}
+        <Route path="/profile" element={<Profile user={user} setUser={setUser} role={role} />} />
+
+        {/* Jika ketik URL aneh-aneh, auto redirect ke landing */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
     </div>
   );
 }
