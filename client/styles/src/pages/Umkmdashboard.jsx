@@ -27,8 +27,6 @@ export default function UMKMDashboard({ user, setPage }) {
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState('');
 
-  // Ganti baris useEffect di client/src/pages/UMKMDashboard.jsx dengan ini:
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -37,13 +35,21 @@ export default function UMKMDashboard({ user, setPage }) {
           getTransactions(),
         ]);
         
-        const campData = campRes.data?.campaign || campRes.data?.[0] || campRes.data;
-        
-        // ✅ LOGIKA SAKTI: Jika data dari backend ada tapi dummy (target 0 atau tidak ada nama)
-        if (campData && (campData.target === 0 || campData.target_amount === 0 || !campData.name)) {
-          setCampaign(null); // Paksa ke tampilan "Belum ada campaign"
+        // ✅ PERBAIKAN UTAMA: Membaca properti .campaigns (sesuai JSON dari Backend)
+        const campList = campRes.data?.campaigns || campRes.data;
+        let campData = null;
+
+        if (Array.isArray(campList) && campList.length > 0) {
+          campData = campList[0]; // Ambil campaign pertama milik owner
+        } else if (campList && !Array.isArray(campList) && Object.keys(campList).length > 0) {
+          campData = campList;
+        }
+
+        // Jalankan logika penyaring sakti berdasarkan title & target_amount database
+        if (campData && (!campData.title || parseFloat(campData.target_amount) === 0)) {
+          setCampaign(null);
         } else {
-          setCampaign(campData || null);
+          setCampaign(campData);
         }
         
         const tData = txnRes.data?.transactions || txnRes.data;
@@ -66,7 +72,10 @@ export default function UMKMDashboard({ user, setPage }) {
     </div>
   );
 
-  const progress = campaign ? pct(campaign.raised || campaign.current_amount || 0, campaign.target || campaign.target_amount || 1) : 0;
+  // Perhitungan progress pendanaan berdasarkan kolom database c.collected_amount & c.target_amount
+  const targetVal = campaign ? parseFloat(campaign.target_amount || 0) : 0;
+  const raisedVal = campaign ? parseFloat(campaign.collected_amount || campaign.raised || 0) : 0;
+  const progress  = campaign ? pct(raisedVal, targetVal > 0 ? targetVal : 1) : 0;
   
   const initials = user?.name
     ? user.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
@@ -87,19 +96,20 @@ export default function UMKMDashboard({ user, setPage }) {
     <div className="ff-card" style={{ marginBottom: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: 8 }}>
         <div>
-          <h3 style={{ fontWeight: 600, fontSize: 16 }}>{campaign.name}</h3>
-          <p style={{ fontSize: 13, color: T.gray500, marginTop: 2 }}>{campaign.desc || campaign.description}</p>
+          {/* ✅ Menggunakan campaign.title & campaign.description sesuai kolom database */}
+          <h3 style={{ fontWeight: 600, fontSize: 16 }}>{campaign.title}</h3>
+          <p style={{ fontSize: 13, color: T.gray500, marginTop: 2 }}>{campaign.description}</p>
         </div>
-        <span className="ff-badge ff-badge-green">
-          {campaign.status === 'active' ? 'Campaign Aktif' : campaign.status || 'Aktif'}
+        <span className="ff-badge ff-badge-green" style={{ textTransform: 'capitalize' }}>
+          {campaign.status === 'active' ? 'Campaign Aktif' : campaign.status}
         </span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px,1fr))', gap: 12, marginBottom: '1.25rem' }}>
         {[
-          ['Dana terkumpul', fmt(campaign.raised || campaign.current_amount || 0)],
-          ['Target',         fmt(campaign.target || campaign.target_amount || 0)],
-          ['Investor',       `${campaign.investors || campaign.investor_count || 0} orang`],
+          ['Dana terkumpul', fmt(raisedVal)],
+          ['Target',         fmt(targetVal)],
+          ['Investor',       `${campaign.investor_count || 0} orang`],
           ['Sisa waktu',     campaign.days_left ? `${campaign.days_left} hari` : '—'],
         ].map(([k, v]) => (
           <div key={k} style={{ padding: 12, background: T.gray50, borderRadius: 8, border: `1px solid ${T.gray200}` }}>
@@ -188,7 +198,7 @@ export default function UMKMDashboard({ user, setPage }) {
             {user?.email || 'Pemilik UMKM'}
           </div>
           <span className="ff-badge ff-badge-green">
-            {campaign?.sector || campaign?.category || 'UMKM'}
+            {campaign?.category || 'UMKM'}
           </span>
         </div>
 
