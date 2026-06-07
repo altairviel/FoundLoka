@@ -31,7 +31,6 @@ export default function CampaignPage({ role, setPage, setSelectedCampaign }) {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('Semua');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'map'
   const [useRadius, setUseRadius] = useState(false);
   const [userCoords, setUserCoords] = useState(null);
 
@@ -83,25 +82,8 @@ export default function CampaignPage({ role, setPage, setSelectedCampaign }) {
         <div className="ff-container">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Kampanye UMKM</h1>
+              <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Campanye UMKM</h1>
               <p style={{ color: T.gray500, fontSize: 14 }}>{loading ? 'Memuat...' : `${filtered.length} kampanye aktif · semua telah diverifikasi`}</p>
-            </div>
-            {/* Toggle view grid / map */}
-            <div style={{ display: 'flex', gap: 6 }}>
-              {['grid', 'map'].map((m) => (
-                <button
-                  key={m}
-                  className="ff-btn ff-btn-sm"
-                  onClick={() => setViewMode(m)}
-                  style={{
-                    background: viewMode === m ? T.green : T.white,
-                    color: viewMode === m ? T.white : T.gray700,
-                    borderColor: viewMode === m ? T.green : T.gray300,
-                  }}
-                >
-                  {m === 'grid' ? '⊞ Grid' : '📍 Peta'}
-                </button>
-              ))}
             </div>
           </div>
 
@@ -166,9 +148,7 @@ export default function CampaignPage({ role, setPage, setSelectedCampaign }) {
       <div className="ff-container" style={{ paddingTop: '2rem', paddingBottom: '3rem' }}>
         {error && <div style={{ background: '#FEE2E2', color: '#B91C1C', fontSize: 13, padding: '10px 12px', borderRadius: 8, marginBottom: '1.5rem' }}>⚠️ {error}</div>}
 
-        {viewMode === 'map' ? (
-          <MapView campaigns={filtered} onCardClick={handleCardClick} />
-        ) : loading ? (
+        {loading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px,1fr))', gap: '1rem' }}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} style={{ height: 300, background: T.gray100, borderRadius: 10, animation: 'pulse 1.5s infinite' }} />
@@ -187,41 +167,6 @@ export default function CampaignPage({ role, setPage, setSelectedCampaign }) {
             ))}
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-// ── Map View sederhana (list dengan koordinat) ──
-function MapView({ campaigns, onCardClick }) {
-  const withCoords = campaigns.filter((c) => c.lat && c.lng);
-  return (
-    <div>
-      <div
-        style={{
-          background: T.gray100,
-          border: T.border,
-          borderRadius: 10,
-          height: 360,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '1.5rem',
-          color: T.gray500,
-          fontSize: 14,
-          flexDirection: 'column',
-          gap: 8,
-        }}
-      >
-        <div style={{ fontSize: 32 }}>🗺️</div>
-        <div style={{ fontWeight: 600 }}>Tampilan Peta</div>
-        <div style={{ fontSize: 13 }}>Integrasikan Leaflet/Mapbox di sini menggunakan koordinat kampanye</div>
-        <div style={{ fontSize: 12, color: T.gray500 }}>{withCoords.length} kampanye memiliki koordinat</div>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px,1fr))', gap: '1rem' }}>
-        {campaigns.map((c) => (
-          <CampaignCard key={c.id} campaign={c} onClick={() => onCardClick(c)} />
-        ))}
       </div>
     </div>
   );

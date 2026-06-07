@@ -1,13 +1,14 @@
 // client/styles/src/components/Navbar.jsx
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // 👈 1. Import hook dari react-router-dom
+import { useNavigate, useLocation } from 'react-router-dom'; 
 import { T } from '../../tokens';
+// ✅ PERBAIKAN PATH: Mengambil logo secara dinamis dari folder assets sesuai image_2fd222.png
+import folkFundLogo from '../assets/Folk Fund.png';
 import { getNotifications, markAsRead, markAllAsRead } from '../services/notification';
 
-// 💡 2. Hapus prop page dan setPage dari parameter fungsi
 export default function Navbar({ role, user, onLogout }) {
-  const navigate = useNavigate(); // Hook untuk pindah URL
-  const location = useLocation(); // Hook untuk membaca URL aktif sekarang
+  const navigate = useNavigate(); 
+  const location = useLocation(); 
 
   const [showNotif, setShowNotif] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -20,7 +21,6 @@ export default function Navbar({ role, user, onLogout }) {
   const notifRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
-  // Menentukan path dashboard berdasarkan role
   const dashboardPath = role === 'investor' ? '/investor' : role === 'admin' ? '/admin' : '/umkm';
 
   const initials = user?.name
@@ -92,10 +92,9 @@ export default function Navbar({ role, user, onLogout }) {
     }
   };
 
-  // 🗺️ 3. Ubah format dari ID biasa menjadi path URL yang nyata
   const navLinks = [
     { path: '/campaign', label: 'Kampanye' },
-    { path: '/map', label: 'Peta' }, // Otomatis mengarah ke rute MapView baru kamu
+    { path: '/map', label: 'Peta' }, 
     { path: dashboardPath, label: 'Dashboard' },
   ];
 
@@ -137,7 +136,7 @@ export default function Navbar({ role, user, onLogout }) {
             {showMobileMenu ? '✕' : '☰'}
           </button>
 
-          {/* Logo → 4. Gunakan navigate('/') untuk kembali ke landing */}
+          {/* Logo */}
           <button
             className="ff-nav-logo"
             onClick={() => {
@@ -146,12 +145,12 @@ export default function Navbar({ role, user, onLogout }) {
             }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
           >
-            <img src="/Folk Fund.png" alt="FolkFund" style={{ height: 28, objectFit: 'contain' }} />
+            {/* ✅ SEKARANG MENGGUNAKAN VARIABEL IMPORT YANG BENAR */}
+            <img src={folkFundLogo} alt="FolkFund" style={{ height: 28, objectFit: 'contain' }} />
           </button>
         </div>
 
         {/* Nav links tengah (Desktop) */}
-        {/* 5. Pengecekan status tombol aktif diubah menggunakan location.pathname */}
         <div className="ff-nav-links">
           {navLinks.map((l) => (
             <button
@@ -336,7 +335,6 @@ export default function Navbar({ role, user, onLogout }) {
                   overflow: 'hidden',
                 }}
               >
-                {/* 6. Navigasi menu profil ke /profile */}
                 <button
                   onClick={() => {
                     navigate('/profile');
@@ -354,7 +352,7 @@ export default function Navbar({ role, user, onLogout }) {
                   }}
                   style={{ display: 'block', width: '100%', padding: '10px 16px', fontSize: 14, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', color: '#DC2626' }}
                 >
-                  ⇠ Keluar
+                  ⚖️ Keluar
                 </button>
               </div>
             )}
@@ -391,7 +389,6 @@ export default function Navbar({ role, user, onLogout }) {
                 width: '100%',
                 padding: '12px 24px',
                 textAlign: 'left',
-                background: 'none',
                 border: 'none',
                 cursor: 'pointer',
                 fontSize: 16,

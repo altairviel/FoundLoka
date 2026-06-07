@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { T } from '../../tokens';
 import api from '../services/api';
+// ✅ PERBAIKAN PATH: Mengambil logo secara dinamis dari folder assets sesuai struktur internal proyek
+import folkFundLoginLogo from '../assets/Folk Fund Login.png';
 
 export default function Auth({ setRole, setPage, setUser }) {
   const [isRegister, setIsRegister] = useState(false);
@@ -21,7 +23,7 @@ export default function Auth({ setRole, setPage, setUser }) {
     confirmPassword: '',
   });
 
-  // ✅ State untuk melacak mode mobile secara dinamis
+  // State untuk melacak mode mobile secara dinamis
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
@@ -183,7 +185,6 @@ export default function Auth({ setRole, setPage, setUser }) {
   };
 
   return (
-    // ✅ Mengubah arah flex menjadi kolom ketika layar mobile agar tidak menyempit horizontal
     <div style={{ display: 'flex', minHeight: '100vh', background: T.gray50, flexDirection: isMobile ? 'column' : 'row' }}>
       
       {/* Kiri/Atas: Branding */}
@@ -199,7 +200,8 @@ export default function Auth({ setRole, setPage, setUser }) {
       }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <img src="/Folk Fund Login.png" alt="FoundLoka Logo" style={{ height: isMobile ? 38 : 48, objectFit: 'contain' }} />
+            {/* ✅ SEKARANG MENGGUNAKAN VARIABEL LOGO ASSETS YANG DIIMPORT DI ATAS */}
+            <img src={folkFundLoginLogo} alt="FolkFund Logo" style={{ height: isMobile ? 38 : 48, objectFit: 'contain' }} />
           </div>
           <h1 style={{ 
             fontSize: isMobile ? '1.75rem' : '2.5rem', 
@@ -210,7 +212,6 @@ export default function Auth({ setRole, setPage, setUser }) {
             Membangun ekonomi,<br />satu UMKM pada satu waktu.
           </h1>
         </div>
-        {/* Sembunyikan footer hak cipta di area branding jika layar HP agar hemat ruang */}
         {!isMobile && (
           <div style={{ fontSize: 13, color: T.greenLight, opacity: 0.8 }}>© 2026 Folk Fund. All rights reserved.</div>
         )}
@@ -286,7 +287,6 @@ export default function Auth({ setRole, setPage, setUser }) {
 
               <div style={{ marginBottom: '2rem' }}>
                 <label className="ff-label">Saya mendaftar sebagai:</label>
-                {/* ✅ Mengubah grid selector role agar menjadi 1 kolom jika di layar HP sempit */}
                 <div style={{ 
                   display: 'grid', 
                   gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
@@ -306,12 +306,10 @@ export default function Auth({ setRole, setPage, setUser }) {
                         padding: '1rem', 
                         borderRadius: 8, 
                         cursor: 'pointer', 
-                        textAlign: 'center', 
                         transition: 'all 0.2s',
-                        display: isMobile ? 'flex' : 'block', // Fleksibel: sejajar horizontal di mobile
-                        alignItems: 'center',
+                        display: isMobile ? 'flex' : 'block', 
+                        alignItems: 'center', 
                         gap: 12,
-                        textKeep: 'left'
                       }}
                     >
                       <div style={{ fontSize: 24, marginBottom: isMobile ? 0 : 4 }}>{emoji}</div>

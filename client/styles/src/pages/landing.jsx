@@ -1,7 +1,11 @@
 import { T } from '../../tokens';
-import CampaignCard from '../../src/components/CampaignCard';
+import CampaignCard from '../components/CampaignCard'; 
 import { useState, useEffect } from 'react';
 import { getCampaigns } from '../services/campaign';
+
+// ✅ SESUAI STRUKTUR: Mundur ke src, lalu masuk assets
+import folkFundLogo from '../assets/Folk Fund.png'; 
+import bannerImg from '../assets/banner.png';
 
 const STATS = [
   { num: 'Rp 12,4M', label: 'Total Disalurkan' },
@@ -33,6 +37,7 @@ function normalizeCampaign(c) {
     location: c.location || c.address || '—',
   };
 }
+
 export default function Landing({ role, setPage }) {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,18 +46,20 @@ export default function Landing({ role, setPage }) {
     getCampaigns()
       .then(({ data }) => {
         const raw = data.campaigns || [];
-        // Gunakan .map() untuk menyaring data mentah menjadi format yang benar
         setCampaigns(raw.map(normalizeCampaign));
       })
       .catch((err) => console.error('Gagal fetch kampanye:', err.message))
       .finally(() => setLoading(false));
   }, []);
+
   return (
     <div>
       {/* HERO */}
       <section style={{ background: T.white, borderBottom: T.border, padding: '5rem 0 4rem' }}>
-        <div className="ff-container">
-          <div style={{ maxWidth: 620 }}>
+        <div className="ff-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '2rem' }}>
+          
+          {/* Sisi Kiri: Teks */}
+          <div style={{ flex: '1 1 500px', maxWidth: 620 }}>
             <div className="ff-badge ff-badge-green" style={{ marginBottom: '1.25rem' }}>
               ✦ Platform investasi UMKM #1 Indonesia
             </div>
@@ -64,9 +71,9 @@ export default function Landing({ role, setPage }) {
             <p style={{ fontSize: '1.1rem', color: T.gray500, lineHeight: 1.7, marginBottom: '2rem', maxWidth: 480 }}>
               Investasikan dana kamu ke ratusan UMKM terpilih di seluruh Indonesia. Mulai dari Rp 100.000, dapatkan return hingga 18% per tahun.
             </p>
+            
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               {role === 'investor' ? (
-                // Tombol khusus jika yang login adalah Investor
                 <>
                   <button className="ff-btn ff-btn-primary" style={{ padding: '10px 24px', fontSize: 15 }} onClick={() => setPage('campaign')}>
                     Lihat Campaign →
@@ -76,7 +83,6 @@ export default function Landing({ role, setPage }) {
                   </button>
                 </>
               ) : (
-                // Tombol khusus jika yang login adalah UMKM
                 <>
                   <button className="ff-btn ff-btn-primary" style={{ padding: '10px 24px', fontSize: 15 }} onClick={() => setPage('umkm')}>
                     Kelola Campaign UMKM →
@@ -89,6 +95,16 @@ export default function Landing({ role, setPage }) {
             </div>
             <p style={{ fontSize: 12, color: T.gray500, marginTop: 12 }}>Terdaftar &amp; diawasi OJK · Nomor izin: KEP-0012/OJK/2023</p>
           </div>
+
+          {/* Sisi Kanan: Gambar Banner */}
+          <div style={{ flex: '1 1 350px', display: 'flex', justifyContent: 'center' }}>
+            <img 
+              src={bannerImg} 
+              alt="FolkFund Banner" 
+              style={{ width: '100%', maxWidth: '480px', height: 'auto', objectFit: 'contain' }} 
+            />
+          </div>
+
         </div>
       </section>
 
@@ -119,13 +135,10 @@ export default function Landing({ role, setPage }) {
             </button>
           </div>
 
-          {/* Loading */}
           {loading && <p style={{ textAlign: 'center', color: T.gray500, padding: '2rem' }}>Memuat kampanye...</p>}
 
-          {/* Tidak ada kampanye */}
           {!loading && campaigns.length === 0 && <p style={{ textAlign: 'center', color: T.gray500, padding: '2rem' }}>Belum ada kampanye aktif saat ini.</p>}
 
-          {/* ✅ Data dari database */}
           {!loading && campaigns.length > 0 && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px,1fr))', gap: '1rem' }}>
               {campaigns.slice(0, 3).map((c) => (
@@ -180,7 +193,8 @@ export default function Landing({ role, setPage }) {
       <footer style={{ borderTop: T.border, padding: '2rem 0', background: T.white }}>
         <div className="ff-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div className="ff-nav-logo">
-            <img src="/Folk Fund.png" alt="FolkFund Logo" style={{ height: '24px', objectFit: 'contain' }} />
+            {/* ✅ PERBAIKAN: Menggunakan variabel logo hasil import dari assets */}
+            <img src={folkFundLogo} alt="FolkFund Logo" style={{ height: '24px', objectFit: 'contain' }} />
           </div>
         </div>
       </footer>
