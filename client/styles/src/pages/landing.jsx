@@ -114,7 +114,7 @@ export default function Landing({ role, setPage }) {
               <h2 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em' }}>Campaign aktif sekarang</h2>
               <p style={{ color: T.gray500, marginTop: 4, fontSize: 14 }}>Semua UMKM telah melalui proses verifikasi tim lapangan kami.</p>
             </div>
-            <button className="ff-btn ff-btn-sm" onClick={() => setPage('campaigns')}>
+            <button className="ff-btn ff-btn-sm" onClick={() => setPage('campaign')}>
               Lihat semua →
             </button>
           </div>

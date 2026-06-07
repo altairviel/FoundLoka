@@ -20,6 +20,15 @@ export default function Profile({ user, setUser, role }) {
   const [passwordLoading, setPasswordLoading]       = useState(false);
   const [passwordError, setPasswordError]           = useState(''); // ✅ State khusus error password
 
+  // ✅ State untuk melacak mode mobile secara dinamis
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -90,7 +99,6 @@ export default function Profile({ user, setUser, role }) {
       setShowPasswordForm(false);
       setPasswordForm({ oldPassword: '', newPassword: '', confirmNew: '' });
     } catch (err) {
-      // ✅ Menangkap respons khusus dari back-end
       const backendMessage = err.response?.data?.message;
       if (backendMessage === 'Password lama tidak benar') {
         setPasswordError('Password lama yang Anda masukkan masih salah.');
@@ -109,15 +117,16 @@ export default function Profile({ user, setUser, role }) {
   );
 
   const inputStyle = {
-    width: '100%', padding: '8px 12px', fontSize: 14,
+    width: '100%', padding: '10px 12px', fontSize: 14,
     border: `1px solid ${T.gray200}`, borderRadius: 6,
     outline: 'none', boxSizing: 'border-box',
+    background: T.white, color: T.gray700
   };
 
   return (
-    <div style={{ background: T.gray50, minHeight: 'calc(100vh - 56px)', padding: '2rem 0' }}>
-      <div className="ff-container">
-        <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: '1.5rem' }}>Profil Pengguna</h1>
+    <div style={{ background: T.gray50, minHeight: 'calc(100vh - 56px)', padding: isMobile ? '1rem 0' : '2rem 0' }}>
+      <div className="ff-container" style={{ padding: isMobile ? '0 1rem' : '0 2rem' }}>
+        <h1 style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, marginBottom: '1.5rem' }}>Profil Pengguna</h1>
 
         {error && (
           <div style={{ background: '#FEF3C7', color: '#92400E', fontSize: 13, padding: '10px 12px', borderRadius: 8, marginBottom: '1rem' }}>
@@ -131,27 +140,48 @@ export default function Profile({ user, setUser, role }) {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '2rem', alignItems: 'start' }}>
-          {/* Kiri */}
+        {/* ✅ Mengubah grid 2 kolom menjadi 1 kolom jika di layar HP */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 300px', 
+          gap: '1.5rem', 
+          alignItems: 'start' 
+        }}>
+          {/* Bagian Kiri/Utama */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {/* Header */}
-            <div className="ff-card" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+            
+            {/* Header Profil */}
+            <div className="ff-card" style={{ 
+              display: 'flex', 
+              gap: '1rem', 
+              alignItems: isMobile ? 'flex-start' : 'center', 
+              justifyContent: 'space-between',
+              flexDirection: isMobile ? 'column' : 'row'
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                gap: '1rem', 
+                alignItems: 'center',
+                flexDirection: isMobile ? 'column' : 'row',
+                textAlign: isMobile ? 'center' : 'left',
+                width: isMobile ? '100%' : 'auto'
+              }}>
                 <div style={{
-                  width: 80, height: 80, borderRadius: '50%',
+                  width: isMobile ? 70 : 80, height: isMobile ? 70 : 80, borderRadius: '50%',
                   background: T.greenLight, display: 'flex',
                   alignItems: 'center', justifyContent: 'center',
-                  fontSize: 28, fontWeight: 700, color: T.green,
+                  fontSize: isMobile ? 24 : 28, fontWeight: 700, color: T.green,
                   border: `2px solid ${T.green}`,
+                  flexShrink: 0
                 }}>
                   {initials}
                 </div>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <h2 style={{ fontSize: 20, fontWeight: 700 }}>{profile?.name || '—'}</h2>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMobile ? 'center' : 'flex-start', gap: 8, marginBottom: 4 }}>
+                    <h2 style={{ fontSize: isMobile ? 18 : 20, fontWeight: 700, wordBreak: 'break-word' }}>{profile?.name || '—'}</h2>
                   </div>
-                  <p style={{ color: T.gray500, fontSize: 14, marginBottom: 8 }}>{profile?.email}</p>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <p style={{ color: T.gray500, fontSize: 13, marginBottom: 8, wordBreak: 'break-all' }}>{profile?.email}</p>
+                  <div style={{ display: 'flex', justifyContent: isMobile ? 'center' : 'flex-start', gap: 8, flexWrap: 'wrap' }}>
                     <span className="ff-badge ff-badge-green">
                       {role === 'investor' ? 'Investor Aktif' : role === 'owner' ? 'Pemilik UMKM' : 'Admin'}
                     </span>
@@ -167,7 +197,11 @@ export default function Profile({ user, setUser, role }) {
                     setSuccess('');
                   }}
                   className="ff-btn"
-                  style={{ padding: '8px 16px' }}
+                  style={{ 
+                    padding: '8px 16px',
+                    width: isMobile ? '100%' : 'auto',
+                    marginTop: isMobile ? '0.5rem' : 0
+                  }}
                 >
                   Edit Profil
                 </button>
@@ -192,18 +226,18 @@ export default function Profile({ user, setUser, role }) {
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: T.gray500, marginBottom: 4 }}>Email (Tidak dapat diubah)</label>
                     <input style={{ ...inputStyle, background: T.gray100, color: T.gray500, cursor: 'not-allowed' }} type="text" value={profile?.email} disabled />
                   </div>
-                  <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                  <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', flexDirection: isMobile ? 'column-reverse' : 'row' }}>
                     <button
                       type="button"
                       onClick={() => { setIsEditing(false); setError(''); }}
-                      style={{ ...inputStyle, width: 'auto', padding: '8px 16px', cursor: 'pointer', background: T.white, border: `1px solid ${T.gray300}` }}
+                      style={{ ...inputStyle, width: isMobile ? '100%' : 'auto', padding: '10px 16px', cursor: 'pointer', background: T.white, border: `1px solid ${T.gray300}` }}
                       disabled={updateLoading}
                     >
                       Batal
                     </button>
                     <button
                       type="submit"
-                      style={{ padding: '8px 16px', background: T.green, color: T.white, border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, opacity: updateLoading ? 0.7 : 1 }}
+                      style={{ padding: '10px 16px', width: isMobile ? '100%' : 'auto', background: T.green, color: T.white, border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, opacity: updateLoading ? 0.7 : 1 }}
                       disabled={updateLoading}
                     >
                       {updateLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
@@ -219,9 +253,16 @@ export default function Profile({ user, setUser, role }) {
                     ['Role', profile?.role],
                     ['Bergabung', profile?.created_at ? new Date(profile.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'],
                   ].map(([label, val]) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.75rem', borderBottom: `1px solid ${T.gray100}` }}>
-                      <span style={{ color: T.gray500 }}>{label}</span>
-                      <span style={{ fontWeight: 500 }}>{val || '—'}</span>
+                    <div key={label} style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      flexDirection: isMobile ? 'column' : 'row',
+                      gap: isMobile ? 4 : 0,
+                      paddingBottom: '0.75rem', 
+                      borderBottom: `1px solid ${T.gray100}` 
+                    }}>
+                      <span style={{ color: T.gray500, fontSize: 13 }}>{label}</span>
+                      <span style={{ fontWeight: 500, wordBreak: 'break-word' }}>{val || '—'}</span>
                     </div>
                   ))}
                 </div>
@@ -242,8 +283,6 @@ export default function Profile({ user, setUser, role }) {
 
               {showPasswordForm && (
                 <form onSubmit={handleUpdatePassword} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: 4 }}>
-                  
-                  {/* ✅ Pesan Error Khusus Password */}
                   {passwordError && (
                     <div style={{ background: '#FEE2E2', color: '#B91C1C', fontSize: 13, padding: '8px 12px', borderRadius: 6 }}>
                       ⚠️ {passwordError}
@@ -268,7 +307,7 @@ export default function Profile({ user, setUser, role }) {
                   <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <button
                       type="submit"
-                      style={{ padding: '8px 16px', background: T.green, color: T.white, border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, opacity: passwordLoading ? 0.7 : 1 }}
+                      style={{ padding: '10px 16px', width: isMobile ? '100%' : 'auto', background: T.green, color: T.white, border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, opacity: passwordLoading ? 0.7 : 1 }}
                       disabled={passwordLoading}
                     >
                       {passwordLoading ? 'Menyimpan...' : 'Simpan Password'}
@@ -279,8 +318,8 @@ export default function Profile({ user, setUser, role }) {
             </div>
           </div>
 
-          {/* Kanan */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Bagian Kanan/Sidebar (Akan bertumpuk ke bawah di HP) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
             <StatCard
               label={role === 'investor' ? 'Tipe Akun' : 'Status'}
               value={role === 'investor' ? 'Investor' : 'Pemilik UMKM'}
@@ -295,6 +334,7 @@ export default function Profile({ user, setUser, role }) {
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>

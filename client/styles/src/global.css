@@ -37,11 +37,12 @@ body {
   color: var(--gray900); 
   font-size: 15px; 
   line-height: 1.6; 
+  overflow-x: hidden; /* Mencegah halaman bisa digeser ke kanan-kiri di HP */
 }
 
 a { color: inherit; text-decoration: none; }
 button { cursor: pointer; font-family: inherit; }
-input, select { font-family: inherit; }
+input, select, textarea { font-family: inherit; width: 100%; }
 
 /* Komponen / Classes */
 .ff-nav {
@@ -66,11 +67,21 @@ input, select { font-family: inherit; }
 .ff-nav-link:hover { background: var(--gray100); }
 .ff-nav-link.active { color: var(--green); font-weight: 500; }
 
+/* Hamburger Button (Sembunyikan default di Desktop) */
+.ff-hamburger-btn {
+  display: none !important;
+}
+
 .ff-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   padding: 8px 16px; border-radius: 6px;
   font-size: 14px; font-weight: 500;
   border: var(--border); background: var(--white);
   color: var(--gray900); transition: all 0.15s;
+  white-space: nowrap;
 }
 .ff-btn:hover { background: var(--gray100); }
 
@@ -84,6 +95,7 @@ input, select { font-family: inherit; }
 .ff-badge {
   display: inline-block; padding: 2px 8px;
   border-radius: 4px; font-size: 12px; font-weight: 500;
+  white-space: nowrap;
 }
 .ff-badge-green { background: var(--greenLight); color: var(--greenDark); }
 .ff-badge-gray  { background: var(--gray100); color: var(--gray700); }
@@ -119,18 +131,26 @@ input, select { font-family: inherit; }
 .ff-progress   { height: 6px; background: var(--gray200); border-radius: 3px; overflow: hidden; }
 .ff-progress-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.5s; }
 
-.ff-table      { width: 100%; border-collapse: collapse; font-size: 14px; }
+/* Pembungkus Tabel agar bisa di-scroll ke samping di HP, tidak merusak layout */
+.ff-table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+.ff-table      { width: 100%; border-collapse: collapse; font-size: 14px; white-space: nowrap; }
 .ff-table th   { padding: 8px 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--gray500); text-transform: uppercase; letter-spacing: 0.04em; border-bottom: var(--border); }
 .ff-table td   { padding: 10px 12px; border-bottom: 0.5px solid var(--gray200); }
 .ff-table tr:last-child td { border-bottom: none; }
 .ff-table tr:hover td      { background: var(--gray50); }
 
 .ff-section    { padding: 4rem 0; }
-.ff-container  { max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+.ff-container  { max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; width: 100%; }
 
-.ff-grid-2     { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-.ff-grid-3     { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
-.ff-grid-4     { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+/* Grid layout menggunakan auto-fit agar otomatis menyesuaikan tanpa patah */
+.ff-grid-2     { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+.ff-grid-3     { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+.ff-grid-4     { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
 
 .ff-sidebar    { width: 220px; flex-shrink: 0; }
 .ff-sidebar-link {
@@ -145,7 +165,30 @@ input, select { font-family: inherit; }
 .ff-sidebar-link.active { background: var(--greenLight); color: var(--green); font-weight: 500; }
 
 @media (max-width: 768px) {
-  .ff-grid-2, .ff-grid-3, .ff-grid-4 { grid-template-columns: 1fr; }
-  .ff-sidebar-wrapper, .ff-sidebar { display: none; }
-  .ff-nav-links  { display: none; }
+  /* 1. Reset Spacing Utama */
+  .ff-section { padding: 2rem 0; }
+  .ff-container { padding: 0 1rem; }
+  .ff-card { padding: 1rem; }
+
+  /* 2. Tata Letak Grid Otomatis Menjadi 1 Kolom Kebawah */
+  .ff-grid-2, .ff-grid-3, .ff-grid-4 { 
+    grid-template-columns: 1fr !important; 
+    gap: 1rem; 
+  }
+
+  /* 3. Menyembunyikan Sidebar Desktop Lama */
+  .ff-sidebar-wrapper, .ff-sidebar { 
+    display: none !important; 
+  }
+
+  /* 4. Pengondisian Navbar Mobile */
+  .ff-nav { padding: 0 1rem; }
+  .ff-nav-links { display: none !important; } /* Sembunyikan menu teks horizontal */
+  .ff-hamburger-btn { display: block !important; } /* Tampilkan tombol laci ☰ */
+  .ff-user-info { display: none !important; } /* Sembunyikan teks nama user agar muat */
+  .ff-mobile-menu { display: block !important; } /* Aktifkan menu dropdown mobile */
+
+  /* 5. Fleksibilitas Elemen Tombol & Form */
+  .ff-btn { width: 100%; } /* Tombol di mobile otomatis melebar penuh agar mudah ditekankan jari */
+  .ff-stat-num { font-size: 22px; } /* Ukuran angka dashboard sedikit diperkecil */
 }

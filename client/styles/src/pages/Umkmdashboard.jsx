@@ -26,6 +26,16 @@ export default function UMKMDashboard({ user, setPage }) {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState('');
+  const [isOpenMobileMenu, setIsOpenMobileMenu] = useState(false);
+  
+  // ✅ Menggunakan state untuk melacak lebar layar secara dinamis
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,17 +45,15 @@ export default function UMKMDashboard({ user, setPage }) {
           getTransactions(),
         ]);
         
-        // ✅ PERBAIKAN UTAMA: Membaca properti .campaigns (sesuai JSON dari Backend)
         const campList = campRes.data?.campaigns || campRes.data;
         let campData = null;
 
         if (Array.isArray(campList) && campList.length > 0) {
-          campData = campList[0]; // Ambil campaign pertama milik owner
+          campData = campList[0];
         } else if (campList && !Array.isArray(campList) && Object.keys(campList).length > 0) {
           campData = campList;
         }
 
-        // Jalankan logika penyaring sakti berdasarkan title & target_amount database
         if (campData && (!campData.title || parseFloat(campData.target_amount) === 0)) {
           setCampaign(null);
         } else {
@@ -72,7 +80,6 @@ export default function UMKMDashboard({ user, setPage }) {
     </div>
   );
 
-  // Perhitungan progress pendanaan berdasarkan kolom database c.collected_amount & c.target_amount
   const targetVal = campaign ? parseFloat(campaign.target_amount || 0) : 0;
   const raisedVal = campaign ? parseFloat(campaign.collected_amount || campaign.raised || 0) : 0;
   const progress  = campaign ? pct(raisedVal, targetVal > 0 ? targetVal : 1) : 0;
@@ -84,10 +91,10 @@ export default function UMKMDashboard({ user, setPage }) {
   // ── POTONGAN UI (KOMPONEN INTERNAL) ── //
   
   const renderEmptyState = () => (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400, flexDirection: 'column', gap: '1rem', background: T.white, borderRadius: 12, border: `1px solid ${T.gray200}` }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 350, flexDirection: 'column', gap: '1rem', background: T.white, borderRadius: 12, border: `1px solid ${T.gray200}`, padding: '2rem', textAlign: 'center' }}>
       <div style={{ fontSize: 48 }}>🏪</div>
-      <h2 style={{ fontWeight: 600 }}>Belum ada campaign</h2>
-      <p style={{ color: T.gray500, fontSize: 14 }}>Ajukan campaign baru untuk mulai mencari pendanaan.</p>
+      <h2 style={{ fontWeight: 600, fontSize: 18 }}>Belum ada campaign</h2>
+      <p style={{ color: T.gray500, fontSize: 14, maxWidth: 300 }}>Ajukan campaign baru untuk mulai mencari pendanaan.</p>
       <button className="ff-btn ff-btn-primary" onClick={() => setPage('createCampaign')}>Ajukan Campaign</button>
     </div>
   );
@@ -96,7 +103,6 @@ export default function UMKMDashboard({ user, setPage }) {
     <div className="ff-card" style={{ marginBottom: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: 8 }}>
         <div>
-          {/* ✅ Menggunakan campaign.title & campaign.description sesuai kolom database */}
           <h3 style={{ fontWeight: 600, fontSize: 16 }}>{campaign.title}</h3>
           <p style={{ fontSize: 13, color: T.gray500, marginTop: 2 }}>{campaign.description}</p>
         </div>
@@ -105,7 +111,8 @@ export default function UMKMDashboard({ user, setPage }) {
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px,1fr))', gap: 12, marginBottom: '1.25rem' }}>
+      {/* Grid responsif otomatis tanpa CSS external */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, marginBottom: '1.25rem' }}>
         {[
           ['Dana terkumpul', fmt(raisedVal)],
           ['Target',         fmt(targetVal)],
@@ -114,7 +121,7 @@ export default function UMKMDashboard({ user, setPage }) {
         ].map(([k, v]) => (
           <div key={k} style={{ padding: 12, background: T.gray50, borderRadius: 8, border: `1px solid ${T.gray200}` }}>
             <div style={{ fontSize: 11, color: T.gray500, marginBottom: 4 }}>{k}</div>
-            <div style={{ fontSize: 16, fontWeight: 600 }}>{v}</div>
+            <div style={{ fontSize: 15, fontWeight: 600, wordBreak: 'break-word' }}>{v}</div>
           </div>
         ))}
       </div>
@@ -165,11 +172,11 @@ export default function UMKMDashboard({ user, setPage }) {
                 ? <tr><td colSpan={4} style={{ textAlign: 'center', color: T.gray500, padding: '2rem' }}>Belum ada transaksi.</td></tr>
                 : displayTxns.map((t, i) => (
                   <tr key={i}>
-                    <td style={{ fontSize: 13, color: T.gray500 }}>
+                    <td style={{ fontSize: 13, color: T.gray500, whiteSpace: 'nowrap' }}>
                       {t.date ? new Date(t.date).toLocaleDateString('id-ID') : new Date(t.created_at).toLocaleDateString('id-ID')}
                     </td>
                     <td style={{ fontWeight: 500 }}>{t.investor_name || t.investor || t.description || '—'}</td>
-                    <td style={{ fontWeight: 600, color: T.green }}>+{fmt(t.amount)}</td>
+                    <td style={{ fontWeight: 600, color: T.green, whiteSpace: 'nowrap' }}>+{fmt(t.amount)}</td>
                     <td>
                       <span className={`ff-badge ${t.type === 'Masuk' || t.type === 'investment' ? 'ff-badge-green' : 'ff-badge-amber'}`}>
                         {t.type === 'investment' ? 'Masuk' : t.type || 'Masuk'}
@@ -186,9 +193,39 @@ export default function UMKMDashboard({ user, setPage }) {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: 'calc(100vh - 56px)' }}>
+    <div style={{ display: 'flex', minHeight: 'calc(100vh - 56px)', position: 'relative', flexDirection: isMobile ? 'column' : 'row' }}>
+      
+      {/* Tombol Terapung Mobile */}
+      {isMobile && (
+        <button
+          onClick={() => setIsOpenMobileMenu(!isOpenMobileMenu)}
+          style={{
+            position: 'fixed', bottom: 20, right: 20, zIndex: 10000,
+            background: T.green, color: T.white, border: 'none',
+            padding: '12px 24px', borderRadius: 30, fontWeight: 600, fontSize: 14,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.2)', display: 'block'
+          }}
+        >
+          {isOpenMobileMenu ? '✕ Tutup Menu' : '📋 Menu Dashboard'}
+        </button>
+      )}
+
       {/* Sidebar Kiri */}
-      <aside style={{ width: 240, borderRight: `1px solid ${T.gray200}`, padding: '1.5rem 1rem', background: T.white }}>
+      <aside 
+        style={{ 
+          width: isMobile ? '100%' : 240, 
+          borderRight: isMobile ? 'none' : `1px solid ${T.gray200}`, 
+          padding: '1.5rem 1rem', 
+          background: T.white,
+          display: isMobile ? (isOpenMobileMenu ? 'flex' : 'none') : 'flex',
+          flexDirection: 'column',
+          position: isMobile ? 'fixed' : 'sticky',
+          top: '56px', left: 0, right: 0, bottom: 0,
+          zIndex: 9999,
+          height: isMobile ? 'calc(100vh - 56px)' : 'auto',
+          overflowY: 'auto'
+        }}
+      >
         <div style={{ marginBottom: '2rem' }}>
           <div style={{ width: 40, height: 40, borderRadius: '50%', background: T.greenLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: T.green, marginBottom: '0.5rem' }}>
             {initials}
@@ -208,13 +245,17 @@ export default function UMKMDashboard({ user, setPage }) {
             return (
               <button
                 key={l.id}
-                onClick={() => setTab(l.id)}
+                onClick={() => {
+                  setTab(l.id);
+                  setIsOpenMobileMenu(false); // Otomatis menutup menu setelah diklik di HP
+                }}
                 style={{
                   display: 'flex', alignItems: 'center', width: '100%', padding: '10px 12px',
                   borderRadius: 8, border: 'none', cursor: 'pointer', textAlign: 'left',
                   background: isActive ? T.greenLight : 'transparent',
                   color: isActive ? T.greenDark : T.gray700,
                   fontWeight: isActive ? 600 : 500,
+                  fontSize: 14,
                   transition: 'background 0.2s',
                 }}
               >
@@ -227,7 +268,7 @@ export default function UMKMDashboard({ user, setPage }) {
       </aside>
 
       {/* Konten Utama Kanan */}
-      <main style={{ flex: 1, padding: '2rem', background: T.gray50, overflow: 'auto' }}>
+      <main style={{ flex: 1, padding: isMobile ? '1rem' : '2rem', background: T.gray50, overflow: 'auto', width: '100%' }}>
         {error && (
           <div style={{ background: '#FEE2E2', color: '#B91C1C', fontSize: 13, padding: '10px 12px', borderRadius: 8, marginBottom: '1rem' }}>
             ⚠️ {error}
