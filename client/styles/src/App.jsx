@@ -1,11 +1,13 @@
-// client/src/App.jsx
+// client/styles/src/App.jsx
 import { useState } from 'react';
 import Navbar from './components/Navbar';
 import Auth from './pages/Auth';
-import Landing from './pages/Landing';
-import InvestorDashboard from './pages/InvestorDashboard';
-import UMKMDashboard from './pages/UMKMDashboard';
-import CampaignPage from './pages/CampaignPage';
+import Landing from './pages/landing';
+import InvestorDashboard from './pages/Investordashboard';
+import UMKMDashboard from './pages/Umkmdashboard';
+import CampaignPage from './pages/Campaignpage';
+import CampaignDetail from './pages/CampaignDetail';
+import CreateCampaign from './pages/CreateCampaign';
 import Profile from './pages/Profile';
 
 export default function App() {
@@ -20,7 +22,8 @@ export default function App() {
     return null;
   });
 
-  const [page, setPage] = useState('landing');
+  const [page, setPage]                       = useState('landing');
+  const [selectedCampaign, setSelectedCampaign] = useState(null);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -38,11 +41,46 @@ export default function App() {
     <div>
       <Navbar role={role} page={page} setPage={setPage} user={user} onLogout={handleLogout} />
 
-      {page === 'landing'  && <Landing role={role} setPage={setPage} />}
-      {page === 'investor' && role === 'investor' && <InvestorDashboard user={user} setPage={setPage} />}
-      {page === 'umkm'     && role === 'owner'    && <UMKMDashboard user={user} />}
-      {page === 'campaign' && <CampaignPage role={role} />}
-      {page === 'profile'  && <Profile user={user} setUser={setUser} role={role} />}
+      {page === 'landing' && (
+        <Landing role={role} setPage={setPage} setSelectedCampaign={setSelectedCampaign} />
+      )}
+
+      {page === 'campaign' && (
+        <CampaignPage
+          role={role}
+          setPage={setPage}
+          setSelectedCampaign={setSelectedCampaign}
+        />
+      )}
+
+      {page === 'campaignDetail' && selectedCampaign && (
+        <CampaignDetail
+          campaign={selectedCampaign}
+          role={role}
+          onBack={() => setPage('campaign')}
+        />
+      )}
+
+      {/* Owner only: buat kampanye baru */}
+      {page === 'createCampaign' && role === 'owner' && (
+        <CreateCampaign
+          user={user}
+          onSuccess={() => setPage('umkm')}
+          onCancel={() => setPage('umkm')}
+        />
+      )}
+
+      {page === 'investor' && role === 'investor' && (
+        <InvestorDashboard user={user} setPage={setPage} setSelectedCampaign={setSelectedCampaign} />
+      )}
+
+      {page === 'umkm' && role === 'owner' && (
+        <UMKMDashboard user={user} setPage={setPage} />
+      )}
+
+      {page === 'profile' && (
+        <Profile user={user} setUser={setUser} role={role} />
+      )}
     </div>
   );
 }

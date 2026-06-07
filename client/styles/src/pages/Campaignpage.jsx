@@ -1,250 +1,225 @@
-// client/src/pages/CampaignPage.jsx
+// client/styles/src/pages/Campaignpage.jsx
 import { useState, useEffect } from 'react';
 import { T } from '../../tokens';
 import CampaignCard from '../components/CampaignCard';
-import ProgressBar from '../components/ProgressBar';
-import { getCampaigns, getCampaignById, investCampaign } from '../services/campaign';
-import { fmt, pct } from '../utils/format';
+import { getCampaigns } from '../services/campaign';
+import { fmt } from '../utils/format';
 
-const SECTOR_FILTERS = ['Semua', 'Kuliner', 'Fashion', 'Agrikultur', 'Kerajinan', 'Perikanan'];
+const CATEGORIES = ['Semua', 'Kuliner', 'Fashion', 'Agrikultur', 'Kerajinan', 'Perikanan', 'Teknologi'];
 
-function CampaignDetail({ c, onBack, role }) {
-  const [amount, setAmount]   = useState(500000);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const progress = pct(c.raised || c.current_amount || 0, c.target || c.target_amount || 1);
-
-  const handleInvest = async () => {
-    if (!amount || amount < 100000) return setMessage('Minimum investasi Rp 100.000');
-    setLoading(true);
-    setMessage('');
-    try {
-      await investCampaign(c.id, amount);
-      setMessage('✅ Investasi berhasil! Dana sedang diproses.');
-    } catch (err) {
-      const msg = err.response?.data?.message;
-      setMessage(`⚠️ ${msg || 'Investasi gagal. Coba lagi.'}`);
-    } finally {
-      setLoading(false);
-    }
+function normalizeCampaign(c) {
+  return {
+    ...c,
+    name:      c.name     || c.title              || '—',
+    sector:    c.sector   || c.category           || '—',
+    raised:    parseFloat(c.raised   ?? c.collected_amount ?? 0),
+    target:    parseFloat(c.target   ?? c.target_amount    ?? 1),
+    return:    c.return   ?? (c.return_rate   != null ? `${c.return_rate}%`   : '—'),
+    tenor:     c.tenor    ?? (c.tenor_months  != null ? `${c.tenor_months} bln` : '—'),
+    investors: c.investors ?? c.investor_count ?? 0,
+    desc:      c.desc     || c.description        || '',
+    img:       c.img      || c.icon               || '🏪',
+    risk:      c.risk     || c.risk_level         || '—',
+    location:  c.location || c.address            || '—',
+    owner_name: c.owner_name || 'Pemilik Usaha',
   };
-
-  return (
-    <div style={{ background: T.gray50, minHeight: 'calc(100vh - 56px)' }}>
-      <div className="ff-container" style={{ paddingTop: '2rem', paddingBottom: '3rem' }}>
-        <button className="ff-btn ff-btn-sm" style={{ marginBottom: '1.5rem' }} onClick={onBack}>← Kembali</button>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2rem', alignItems: 'start' }}>
-          {/* Kiri */}
-          <div>
-            <div style={{ background: T.white, border: `1px solid ${T.gray200}`, borderRadius: 8, padding: '2rem', marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: 48 }}>{c.img || c.icon || '🏪'}</div>
-                <div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
-                    <span className="ff-badge ff-badge-gray">{c.sector || c.category}</span>
-                    {c.verified && <span className="ff-badge ff-badge-blue">✓ Terverifikasi</span>}
-                  </div>
-                  <h1 style={{ fontSize: 22, fontWeight: 700 }}>{c.name}</h1>
-                  <p style={{ color: T.gray500, fontSize: 14 }}>📍 {c.location}</p>
-                </div>
-              </div>
-              <p style={{ fontSize: 15, lineHeight: 1.7, color: T.gray700 }}>
-                {c.desc || c.description}
-              </p>
-            </div>
-
-            {/* Penggunaan dana */}
-            <div className="ff-card" style={{ marginBottom: '1.5rem' }}>
-              <h3 style={{ fontWeight: 600, marginBottom: '1rem' }}>Penggunaan dana</h3>
-              {(c.fund_usage || [
-                { label: 'Alat produksi', pct: 50 },
-                { label: 'Modal kerja',   pct: 30 },
-                { label: 'Biaya operasional', pct: 20 },
-              ]).map((item) => (
-                <div key={item.label} style={{ marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 14 }}>{item.label}</span>
-                    <span style={{ fontSize: 14, fontWeight: 500 }}>{item.pct}%</span>
-                  </div>
-                  <ProgressBar value={item.pct} />
-                </div>
-              ))}
-            </div>
-
-            {/* Profil pemilik */}
-            <div className="ff-card">
-              <h3 style={{ fontWeight: 600, marginBottom: '1rem' }}>Profil pemilik</h3>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ width: 48, height: 48, borderRadius: '50%', background: T.greenLight, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: T.green }}>
-                  {(c.owner_name || c.owner || 'P')[0].toUpperCase()}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 600 }}>{c.owner_name || c.owner || 'Pemilik Usaha'}</div>
-                  <div style={{ fontSize: 13, color: T.gray500 }}>Pemilik usaha</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Kanan: panel investasi */}
-          <div>
-            <div className="ff-card" style={{ position: 'sticky', top: 72 }}>
-              <div style={{ marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: 22, fontWeight: 700 }}>{fmt(c.raised || c.current_amount || 0)}</span>
-                  <span style={{ fontSize: 13, color: T.green, fontWeight: 600 }}>{progress}%</span>
-                </div>
-                <div style={{ fontSize: 13, color: T.gray500, marginBottom: 8 }}>dari target {fmt(c.target || c.target_amount || 0)}</div>
-                <ProgressBar value={progress} height={8} />
-              </div>
-
-              <div style={{ height: 1, background: T.gray200, margin: '1rem 0' }} />
-
-              {[
-                ['Return',   `${c.return || c.return_rate || '—'}/tahun`],
-                ['Tenor',    c.tenor || '—'],
-                ['Risiko',   c.risk  || c.risk_level || '—'],
-                ['Investor', `${c.investors || c.investor_count || 0} orang`],
-              ].map(([k, v]) => (
-                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14 }}>
-                  <span style={{ color: T.gray500 }}>{k}</span>
-                  <span style={{ fontWeight: 500 }}>{v}</span>
-                </div>
-              ))}
-
-              <div style={{ height: 1, background: T.gray200, margin: '1rem 0' }} />
-
-              {/* Hanya investor yang bisa investasi */}
-              {role === 'investor' ? (
-                <>
-                  <label className="ff-label">Jumlah investasi (Rp)</label>
-                  <input
-                    className="ff-input"
-                    type="number"
-                    value={amount}
-                    min={100000}
-                    step={50000}
-                    onChange={(e) => setAmount(Number(e.target.value))}
-                    style={{ marginBottom: '0.75rem' }}
-                  />
-                  {message && (
-                    <div style={{
-                      fontSize: 13, padding: '8px 10px', borderRadius: 6, marginBottom: '0.75rem',
-                      background: message.startsWith('✅') ? '#D1FAE5' : '#FEE2E2',
-                      color: message.startsWith('✅') ? '#065F46' : '#B91C1C',
-                    }}>
-                      {message}
-                    </div>
-                  )}
-                  <button
-                    className="ff-btn ff-btn-primary"
-                    style={{ width: '100%', padding: 10, fontSize: 15, opacity: loading ? 0.7 : 1 }}
-                    onClick={handleInvest}
-                    disabled={loading}
-                  >
-                    {loading ? 'Memproses...' : 'Investasi Sekarang'}
-                  </button>
-                  <p style={{ fontSize: 12, color: T.gray500, textAlign: 'center', marginTop: 8 }}>
-                    Minimum Rp 100.000 · Dana aman &amp; terlindungi
-                  </p>
-                </>
-              ) : (
-                <div style={{ fontSize: 13, color: T.gray500, textAlign: 'center', padding: '0.5rem 0' }}>
-                  Login sebagai investor untuk berinvestasi.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 }
 
-export default function CampaignPage({ role }) {
-  const [campaigns, setCampaigns] = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState('');
-  const [filter, setFilter]       = useState('Semua');
-  const [selected, setSelected]   = useState(null);
+export default function CampaignPage({ role, setPage, setSelectedCampaign }) {
+  const [campaigns, setCampaigns]   = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState('');
+  const [search, setSearch]         = useState('');
+  const [category, setCategory]     = useState('Semua');
+  const [viewMode, setViewMode]     = useState('grid'); // 'grid' | 'map'
+  const [useRadius, setUseRadius]   = useState(false);
+  const [userCoords, setUserCoords] = useState(null);
 
+  // Ambil koordinat user untuk filter radius
   useEffect(() => {
-    const fetchCampaigns = async () => {
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {}
+    );
+  }, []);
+
+  // Fetch campaigns dari backend
+  useEffect(() => {
+    const fetch = async () => {
+      setLoading(true);
+      setError('');
       try {
-        const res = await getCampaigns();
-        setCampaigns(res.data?.campaigns || res.data || []);
+        const params = {};
+        if (category !== 'Semua') params.category = category;
+        if (useRadius && userCoords) {
+          params.lat    = userCoords.lat;
+          params.lng    = userCoords.lng;
+          params.radius = 5;
+        }
+        const query = new URLSearchParams(params).toString();
+        const res   = await getCampaigns(query ? `?${query}` : '');
+        const raw   = Array.isArray(res.data?.campaigns) ? res.data.campaigns
+                    : Array.isArray(res.data)            ? res.data
+                    : [];
+        setCampaigns(raw.map(normalizeCampaign));
       } catch (err) {
-        setError('Gagal memuat campaign. Periksa koneksi Anda.');
-        console.error(err);
+        setError('Gagal memuat kampanye. Periksa koneksi Anda.');
       } finally {
         setLoading(false);
       }
     };
-    fetchCampaigns();
-  }, []);
+    fetch();
+  }, [category, useRadius, userCoords]);
 
-  if (selected) {
-    return <CampaignDetail c={selected} onBack={() => setSelected(null)} role={role} />;
-  }
+  const filtered = campaigns.filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.desc.toLowerCase().includes(search.toLowerCase()) ||
+    c.location.toLowerCase().includes(search.toLowerCase())
+  );
 
-  const filtered = filter === 'Semua'
-    ? campaigns
-    : campaigns.filter((c) => (c.sector || c.category) === filter);
+  const handleCardClick = (c) => {
+    setSelectedCampaign(c);
+    setPage('campaignDetail');
+  };
 
   return (
     <div style={{ background: T.gray50, minHeight: 'calc(100vh - 56px)' }}>
-      <div style={{ background: T.white, borderBottom: `1px solid ${T.gray200}`, padding: '2rem 0' }}>
+
+      {/* Header */}
+      <div style={{ background: T.white, borderBottom: T.border, padding: '2rem 0' }}>
         <div className="ff-container">
-          <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 6 }}>Campaign UMKM</h1>
-          <p style={{ color: T.gray500, fontSize: 14 }}>
-            {loading ? 'Memuat...' : `${campaigns.length} campaign aktif · semua telah diverifikasi tim lapangan`}
-          </p>
-          <div style={{ display: 'flex', gap: 6, marginTop: '1.25rem', flexWrap: 'wrap' }}>
-            {SECTOR_FILTERS.map((s) => (
-              <button
-                key={s}
-                className="ff-btn ff-btn-sm"
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 12 }}>
+            <div>
+              <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Kampanye UMKM</h1>
+              <p style={{ color: T.gray500, fontSize: 14 }}>
+                {loading ? 'Memuat...' : `${filtered.length} kampanye aktif · semua telah diverifikasi`}
+              </p>
+            </div>
+            {/* Toggle view grid / map */}
+            <div style={{ display: 'flex', gap: 6 }}>
+              {['grid', 'map'].map((m) => (
+                <button
+                  key={m}
+                  className="ff-btn ff-btn-sm"
+                  onClick={() => setViewMode(m)}
+                  style={{
+                    background: viewMode === m ? T.green : T.white,
+                    color:      viewMode === m ? T.white : T.gray700,
+                    borderColor: viewMode === m ? T.green : T.gray300,
+                  }}
+                >
+                  {m === 'grid' ? '⊞ Grid' : '📍 Peta'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Search bar */}
+          <div style={{ marginTop: '1.25rem', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
+              <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: T.gray500, fontSize: 14 }}>🔍</span>
+              <input
+                type="text"
+                placeholder="Cari nama usaha, deskripsi, lokasi..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 style={{
-                  background: filter === s ? T.green : T.white,
-                  color: filter === s ? T.white : T.gray700,
-                  borderColor: filter === s ? T.green : T.gray300,
+                  width: '100%', padding: '8px 12px 8px 32px',
+                  border: `1px solid ${T.gray200}`, borderRadius: 8,
+                  fontSize: 14, outline: 'none', boxSizing: 'border-box',
+                  background: T.white,
                 }}
-                onClick={() => setFilter(s)}
+              />
+            </div>
+
+            {/* Toggle radius */}
+            <button
+              className="ff-btn ff-btn-sm"
+              onClick={() => setUseRadius(!useRadius)}
+              style={{
+                background: useRadius ? T.green : T.white,
+                color:      useRadius ? T.white : T.gray700,
+                borderColor: useRadius ? T.green : T.gray300,
+              }}
+              title={userCoords ? 'Filter dalam radius 5km dari lokasi Anda' : 'Izinkan lokasi untuk menggunakan fitur ini'}
+            >
+              📍 {useRadius ? 'Radius 5km ✓' : 'Radius 5km'}
+            </button>
+          </div>
+
+          {/* Filter kategori */}
+          <div style={{ display: 'flex', gap: 6, marginTop: '1rem', flexWrap: 'wrap' }}>
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                className="ff-btn ff-btn-sm"
+                onClick={() => setCategory(cat)}
+                style={{
+                  background:  category === cat ? T.green : T.white,
+                  color:       category === cat ? T.white : T.gray700,
+                  borderColor: category === cat ? T.green : T.gray300,
+                }}
               >
-                {s}
+                {cat}
               </button>
             ))}
           </div>
         </div>
       </div>
 
+      {/* Body */}
       <div className="ff-container" style={{ paddingTop: '2rem', paddingBottom: '3rem' }}>
         {error && (
-          <div style={{ background: '#FEE2E2', color: '#B91C1C', fontSize: 13, padding: '10px 12px', borderRadius: 8, marginBottom: '1rem' }}>
+          <div style={{ background: '#FEE2E2', color: '#B91C1C', fontSize: 13, padding: '10px 12px', borderRadius: 8, marginBottom: '1.5rem' }}>
             ⚠️ {error}
           </div>
         )}
 
-        {loading ? (
+        {viewMode === 'map' ? (
+          <MapView campaigns={filtered} onCardClick={handleCardClick} />
+        ) : loading ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px,1fr))', gap: '1rem' }}>
-            {[1,2,3].map(i => (
-              <div key={i} className="ff-card" style={{ height: 280, background: T.gray100, animation: 'pulse 1.5s infinite' }} />
+            {[1,2,3,4,5,6].map((i) => (
+              <div key={i} style={{ height: 300, background: T.gray100, borderRadius: 10, animation: 'pulse 1.5s infinite' }} />
             ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '4rem', color: T.gray500 }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>Kampanye tidak ditemukan</div>
+            <div style={{ fontSize: 14 }}>Coba ubah kata kunci atau filter kategori</div>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px,1fr))', gap: '1rem' }}>
             {filtered.map((c) => (
-              <CampaignCard key={c.id} c={c} onClick={() => setSelected(c)} />
+              <CampaignCard key={c.id} c={c} onClick={() => handleCardClick(c)} />
             ))}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
 
-        {!loading && filtered.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '3rem', color: T.gray500 }}>
-            Belum ada campaign di sektor ini.
-          </div>
-        )}
+// ── Map View sederhana (list dengan koordinat) ──
+function MapView({ campaigns, onCardClick }) {
+  const withCoords = campaigns.filter((c) => c.lat && c.lng);
+  return (
+    <div>
+      <div style={{
+        background: T.gray100, border: T.border, borderRadius: 10,
+        height: 360, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginBottom: '1.5rem', color: T.gray500, fontSize: 14, flexDirection: 'column', gap: 8,
+      }}>
+        <div style={{ fontSize: 32 }}>🗺️</div>
+        <div style={{ fontWeight: 600 }}>Tampilan Peta</div>
+        <div style={{ fontSize: 13 }}>Integrasikan Leaflet/Mapbox di sini menggunakan koordinat kampanye</div>
+        <div style={{ fontSize: 12, color: T.gray500 }}>{withCoords.length} kampanye memiliki koordinat</div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px,1fr))', gap: '1rem' }}>
+        {campaigns.map((c) => (
+          <CampaignCard key={c.id} c={c} onClick={() => onCardClick(c)} />
+        ))}
       </div>
     </div>
   );

@@ -4,11 +4,9 @@ import { T } from '../../tokens';
 import { getNotifications, markAsRead, markAllAsRead } from '../services/notification';
 
 export default function Navbar({ role, page, setPage, user, onLogout }) {
-  // State bawaan dari kode pertama
   const [showNotif, setShowNotif] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  // State & logic notifikasi dari kode kedua
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount]     = useState(0);
   const [loadingNotif, setLoadingNotif]   = useState(false);
@@ -20,7 +18,6 @@ export default function Navbar({ role, page, setPage, user, onLogout }) {
     ? user.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
     : '?';
 
-  // --- LOGIKA NOTIFIKASI KODE KEDUA ---
   useEffect(() => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
@@ -78,11 +75,10 @@ export default function Navbar({ role, page, setPage, user, onLogout }) {
       console.warn('Gagal mark all read:', err.message);
     }
   };
-  // ------------------------------------
 
   return (
     <nav className="ff-nav" style={{ position: 'sticky', top: 0, zIndex: 100, background: T.white, borderBottom: T.border }}>
-      {/* Logo */}
+      {/* Logo → klik ke landing */}
       <button
         className="ff-nav-logo"
         onClick={() => setPage('landing')}
@@ -91,12 +87,11 @@ export default function Navbar({ role, page, setPage, user, onLogout }) {
         <img src="/Folk Fund.png" alt="FolkFund" style={{ height: 28, objectFit: 'contain' }} />
       </button>
 
-      {/* Nav links tengah */}
+      {/* Nav links tengah — Beranda dihapus, Logo sudah handle */}
       <div className="ff-nav-links">
         {[
-          { id: 'landing',  label: 'Beranda' },
-          { id: 'campaign', label: 'Kampanye' },
-          { id: 'map',      label: 'Peta' },
+          { id: 'campaign',    label: 'Kampanye' },
+          { id: 'map',         label: 'Peta' },
           { id: dashboardPage, label: 'Dashboard' },
         ].map((l) => (
           <button
@@ -111,7 +106,7 @@ export default function Navbar({ role, page, setPage, user, onLogout }) {
 
       {/* Kanan: notif + avatar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        
+
         {/* Bell notifikasi */}
         <div ref={notifRef} style={{ position: 'relative' }}>
           <button
@@ -137,10 +132,9 @@ export default function Navbar({ role, page, setPage, user, onLogout }) {
               </span>
             )}
           </button>
-          
+
           {showNotif && (
             <div style={{ position: 'absolute', right: 0, top: '110%', zIndex: 200 }}>
-              {/* ISI DROPDOWN NOTIFIKASI DARI KODE KEDUA */}
               <div style={{
                 width: 320, maxHeight: 400, overflowY: 'auto',
                 background: T.white, border: `1px solid ${T.gray200}`,
@@ -195,7 +189,6 @@ export default function Navbar({ role, page, setPage, user, onLogout }) {
                   ))
                 )}
               </div>
-              {/* AKHIR ISI DROPDOWN NOTIFIKASI */}
             </div>
           )}
         </div>
