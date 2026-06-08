@@ -1,3 +1,4 @@
+// client/styles/src/pages/CampaignDetail.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { T } from '../../tokens';
@@ -385,7 +386,10 @@ export default function CampaignDetail({ role }) {
                     value={amount}
                     min={100000}
                     step={50000}
-                    onChange={(e) => setAmount(Number(e.target.value))}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setAmount(val === '' ? '' : Number(val));
+                    }}
                     style={{ width: '100%', padding: '8px 12px', fontSize: 14, border: `1px solid ${T.gray200}`, borderRadius: 6, outline: 'none', boxSizing: 'border-box', marginBottom: '0.75rem' }}
                   />
                   {amount >= 100000 && (

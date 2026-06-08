@@ -1,6 +1,6 @@
 // client/styles/src/pages/Umkmdashboard.jsx
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { T } from '../../tokens';
 import Sidebar from '../components/Sidebar';
 import StatCard from '../components/StatCard';
@@ -13,7 +13,7 @@ import api from '../services/api';
 const SIDEBAR_LINKS = [
   { id: 'overview',     icon: '⊡', label: 'Ringkasan' },
   { id: 'campaign',     icon: '◈', label: 'Campaign Saya' },
-  { id: 'txn',          icon: '⊞', label: 'Transaksi' },
+  { id: 'installments', icon: '⊞', label: 'Installment' },
   { id: 'dana',         icon: '⬡', label: 'Dana & Kewajiban' },
 ];
 
@@ -97,8 +97,14 @@ function Overview({ user, campaign, transactions, loading, navigate }) {
                   {campaign.category || campaign.sector || '—'} · {campaign.location || '—'}
                 </p>
               </div>
-              <span className={`ff-badge ${campaign.status === 'active' ? 'ff-badge-green' : 'ff-badge-gray'}`}>
-                {campaign.status === 'active' ? 'Aktif' : campaign.status === 'pending' ? 'Menunggu' : campaign.status || '—'}
+              <span className={`ff-badge ${
+                campaign.status === 'active'   ? 'ff-badge-green' :
+                campaign.status === 'rejected' ? 'ff-badge-red'   : 'ff-badge-gray'
+              }`}>
+                {campaign.status === 'active'   ? 'Aktif' :
+                 campaign.status === 'pending'  ? 'Menunggu' :
+                 campaign.status === 'rejected' ? 'Ditolak' :
+                 campaign.status || '—'}
               </span>
             </div>
             <ProgressBar value={progress} />
@@ -191,8 +197,14 @@ function CampaignTab({ campaigns, loading, navigate }) {
                   <h3 style={{ fontWeight: 700, fontSize: 18, margin: '0 0 6px' }}>{campaign.title || campaign.name}</h3>
                   <p style={{ color: T.gray500, fontSize: 13, margin: 0 }}>{campaign.description || '—'}</p>
                 </div>
-                <span className={`ff-badge ${campaign.status === 'active' ? 'ff-badge-green' : 'ff-badge-gray'}`}>
-                  {campaign.status === 'active' ? 'Aktif' : campaign.status === 'pending' ? 'Menunggu Verifikasi' : campaign.status || '—'}
+                <span className={`ff-badge ${
+                  campaign.status === 'active'   ? 'ff-badge-green' :
+                  campaign.status === 'rejected' ? 'ff-badge-red'   : 'ff-badge-gray'
+                }`}>
+                  {campaign.status === 'active'   ? 'Aktif' :
+                   campaign.status === 'pending'  ? 'Menunggu Verifikasi' :
+                   campaign.status === 'rejected' ? 'Ditolak' :
+                   campaign.status || '—'}
                 </span>
               </div>
 
@@ -224,42 +236,6 @@ function CampaignTab({ campaigns, loading, navigate }) {
             </div>
           );
         })}
-      </div>
-    </>
-  );
-}
-
-// ── Transaksi Tab ──
-function TransaksiTab({ transactions, loading }) {
-  const safe = Array.isArray(transactions) ? transactions : [];
-  return (
-    <>
-      <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: '1.5rem' }}>Riwayat Transaksi</h2>
-      <div className="ff-card" style={{ overflowX: 'auto' }}>
-        <table className="ff-table">
-          <thead>
-            <tr>
-              <th>Tanggal</th><th>Investor</th><th>Jumlah</th><th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading
-              ? [1, 2, 3].map((i) => <LoadingRow key={i} />)
-              : safe.length === 0
-                ? <tr><td colSpan={4} style={{ textAlign: 'center', color: T.gray500, padding: '2rem' }}>Belum ada transaksi.</td></tr>
-                : safe.map((t, i) => (
-                  <tr key={i}>
-                    <td style={{ fontSize: 13, color: T.gray500 }}>
-                      {t.created_at ? new Date(t.created_at).toLocaleDateString('id-ID') : '—'}
-                    </td>
-                    <td style={{ fontWeight: 500 }}>{t.investor_name || t.name || 'Investor'}</td>
-                    <td style={{ fontWeight: 600, color: T.green }}>{fmt(parseFloat(t.amount) || 0)}</td>
-                    <td><span className="ff-badge ff-badge-green">Berhasil</span></td>
-                  </tr>
-                ))
-            }
-          </tbody>
-        </table>
       </div>
     </>
   );
@@ -596,7 +572,9 @@ function Toast({ message, type }) {
 // ── Main ──
 export default function UMKMDashboard({ user }) {
   const navigate = useNavigate();
-  const [tab, setTab]                   = useState('overview');
+  const { tab: tabParam } = useParams();
+  const tab = tabParam || 'overview';
+
   const [campaign, setCampaign]         = useState(null);   // kampanye pertama (untuk Overview & DanaTab)
   const [campaigns, setCampaigns]       = useState([]);     // semua kampanye (untuk CampaignTab)
   const [transactions, setTransactions] = useState([]);
@@ -619,9 +597,11 @@ export default function UMKMDashboard({ user }) {
         const campList = campRes.data?.campaigns || campRes.data;
         let allCamps = [];
         if (Array.isArray(campList)) {
-          allCamps = campList.filter((c) => c.title && parseFloat(c.target_amount) > 0);
+          allCamps = campList.filter(
+            (c) => c.title && parseFloat(c.target_amount) > 0 && c.status !== 'rejected'
+          );
         } else if (campList && typeof campList === 'object' && campList.title) {
-          allCamps = [campList];
+          allCamps = campList.status !== 'rejected' ? [campList] : [];
         }
         setCampaigns(allCamps);
         setCampaign(allCamps.length > 0 ? allCamps[0] : null);
@@ -642,6 +622,16 @@ export default function UMKMDashboard({ user }) {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   }, []);
+
+  const handleNavigation = (id) => {
+    if (id === 'installments') {
+      navigate('/installments');
+    } else if (id === 'overview') {
+      navigate('/umkm');
+    } else {
+      navigate(`/umkm/${id}`);
+    }
+  };
 
   const initials = user?.name
     ? user.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
@@ -710,7 +700,7 @@ export default function UMKMDashboard({ user }) {
         </div>
 
         {!isMobile ? (
-          <Sidebar links={SIDEBAR_LINKS} activeTab={tab} setTab={setTab} footer={saldoFooter} />
+          <Sidebar links={SIDEBAR_LINKS} activeTab={tab} setTab={handleNavigation} footer={saldoFooter} />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
             {SIDEBAR_LINKS.map((link) => {
@@ -718,7 +708,7 @@ export default function UMKMDashboard({ user }) {
               return (
                 <button
                   key={link.id}
-                  onClick={() => { setTab(link.id); setIsOpenMobileMenu(false); }}
+                  onClick={() => { handleNavigation(link.id); setIsOpenMobileMenu(false); }}
                   style={{
                     display: 'flex', alignItems: 'center', width: '100%',
                     padding: '12px 14px', borderRadius: 8, border: 'none',
@@ -745,7 +735,6 @@ export default function UMKMDashboard({ user }) {
       }}>
         {tab === 'overview' && <Overview user={user} campaign={campaign} transactions={transactions} loading={loading} navigate={navigate} />}
         {tab === 'campaign' && <CampaignTab campaigns={campaigns} loading={loading} navigate={navigate} />}
-        {tab === 'txn'      && <TransaksiTab transactions={transactions} loading={loading} />}
         {tab === 'dana'     && <DanaTab campaign={campaign} onToast={showToast} />}
       </main>
     </div>

@@ -71,6 +71,7 @@ export default function App() {
 
         {/* 🔒 Proteksi Rute Khusus Owner UMKM */}
         <Route path="/umkm" element={role === 'owner' ? <UMKMDashboard user={user} /> : <Navigate to="/" />} />
+        <Route path="/umkm/:tab" element={role === 'owner' ? <UMKMDashboard user={user} /> : <Navigate to="/" />} />
         <Route path="/create-campaign" element={role === 'owner' ? <CreateCampaign user={user} onSuccess={() => navigate('/umkm')} onCancel={() => navigate('/umkm')} /> : <Navigate to="/" />} />
         <Route path="/installments" element={role === 'owner' ? <Installments onBack={() => navigate('/umkm')} /> : <Navigate to="/" />} />
 
