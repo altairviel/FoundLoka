@@ -1,4 +1,3 @@
-// src/tokens.js
 export const T = {
   green: '#1a7a4a',
   greenLight: '#e8f5ed',

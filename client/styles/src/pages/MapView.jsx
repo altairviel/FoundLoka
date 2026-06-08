@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet'; // 👈 1. Tambahkan useMap di sini
-import { useNavigate } from 'react-router-dom'; // 👈 2. Import useNavigate untuk routing baru
-import 'leaflet/dist/leaflet.css'; // 👈 3. WAJIB IMPORT INI agar susunan kotak peta tidak hancur!
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet'; 
+import { useNavigate } from 'react-router-dom'; 
+import 'leaflet/dist/leaflet.css'; 
 import { T } from '../../tokens';
 import { getMapData } from '../services/campaign';
 import { fmt, pct } from '../utils/format';
@@ -29,7 +29,7 @@ const CATEGORIES = ['Semua', 'Kuliner', 'Fashion', 'Agrikultur', 'Kerajinan', 'P
 const DEFAULT_CENTER = [3.5952, 98.6722];
 const DEFAULT_ZOOM = 13;
 
-// 🛠️ 4. Komponen Helper untuk menyembuhkan grid peta yang terpotong saat render pindah halaman
+// Komponen Helper untuk menyembuhkan grid peta yang terpotong saat render pindah halaman
 function FixMapLayout() {
   const map = useMap();
   useEffect(() => {
@@ -43,7 +43,6 @@ function FixMapLayout() {
 }
 
 export default function MapView() {
-  // 👈 5. Hapus prop { setPage }
   const navigate = useNavigate(); // Hook untuk pindah rute halaman
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +60,7 @@ export default function MapView() {
 
   return (
     <div style={{ height: 'calc(100vh - 60px)', display: 'flex', flexDirection: 'column' }}>
-      {/* ── Header + Filter ── */}
+      {/*  Header + Filter  */}
       <div style={{ padding: '1rem 1.5rem', background: T.white, borderBottom: T.border, display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
         <div>
           <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>Peta Ekonomi Komunitas</h2>
@@ -91,7 +90,7 @@ export default function MapView() {
         </div>
       </div>
 
-      {/* ── Peta ── */}
+      {/*  Peta  */}
       {loading ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.gray500 }}>Memuat peta...</div>
       ) : (
@@ -100,7 +99,7 @@ export default function MapView() {
             {/* Tile layer — peta OpenStreetMap gratis */}
             <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-            {/* 🔥 6. Selipkan komponen penyembuh layout di sini */}
+            {/* Selipkan komponen penyembuh layout di sini */}
             <FixMapLayout />
 
             {/* Pin tiap kampanye */}
@@ -165,7 +164,7 @@ export default function MapView() {
                     </div>
 
                     {/* Tombol lihat detail */}
-                    {/* 7. Ubah setPage menjadi navigate('/campaign-detail') */}
+                    {/* Ubah setPage menjadi navigate('/campaign-detail') */}
                     <button
                       onClick={() => {
                         navigate(`/campaign-detail/${loc.id}`);
@@ -190,7 +189,7 @@ export default function MapView() {
             ))}
           </MapContainer>
 
-          {/* ── Legend ── */}
+          {/*  Legend  */}
           <div
             style={{
               position: 'absolute',

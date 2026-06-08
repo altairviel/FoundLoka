@@ -39,7 +39,7 @@ export const createInstallmentPayment = async (installmentId) => {
       installment_id: installmentId,
     };
 
-    // 💡 DIKUNCI KE /installment AGAR SINKRON DENGAN BACKEND
+    // DIKUNCI KE /installment AGAR SINKRON DENGAN BACKEND
     const response = await axios.post(`${API_BASE_URL}/installment`, payload, getAuthHeaders());
     return response;
   } catch (error) {

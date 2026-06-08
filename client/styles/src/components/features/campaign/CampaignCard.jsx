@@ -1,5 +1,5 @@
 import { T } from '../../../../tokens';
-import { fmt, pct } from '../../../utils/format'; // ✅ sesuai format.js teman kamu
+import { fmt, pct } from '../../../utils/format'; 
 
 export default function CampaignCard({ campaign, onClick }) {
   const progress = pct(parseFloat(campaign.collected_amount || 0), parseFloat(campaign.target_amount || 1));

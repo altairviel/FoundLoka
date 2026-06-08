@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react';
 import { T } from '../../tokens';
 import api from '../services/api';
-// ✅ PERBAIKAN PATH: Mengambil logo secara dinamis dari folder assets sesuai struktur internal proyek
-import folkFundLoginLogo from '../assets/Folk Fund Login.png';
+import folkLokaLoginLogo from '../assets/Folk Loka Login.png';
 
 export default function Auth({ setRole, setPage, setUser }) {
   const [isRegister, setIsRegister] = useState(false);
@@ -200,8 +199,7 @@ export default function Auth({ setRole, setPage, setUser }) {
       }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            {/* ✅ SEKARANG MENGGUNAKAN VARIABEL LOGO ASSETS YANG DIIMPORT DI ATAS */}
-            <img src={folkFundLoginLogo} alt="FolkFund Logo" style={{ height: isMobile ? 38 : 48, objectFit: 'contain' }} />
+            <img src={folkLokaLoginLogo} alt="FolkLoka Logo" style={{ height: isMobile ? 38 : 48, objectFit: 'contain' }} />
           </div>
           <h1 style={{ 
             fontSize: isMobile ? '1.75rem' : '2.5rem', 
@@ -213,7 +211,7 @@ export default function Auth({ setRole, setPage, setUser }) {
           </h1>
         </div>
         {!isMobile && (
-          <div style={{ fontSize: 13, color: T.greenLight, opacity: 0.8 }}>© 2026 Folk Fund. All rights reserved.</div>
+          <div style={{ fontSize: 13, color: T.greenLight, opacity: 0.8 }}>© 2026 Folk Loka. All rights reserved.</div>
         )}
       </div>
 

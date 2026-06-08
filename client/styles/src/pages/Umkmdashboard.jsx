@@ -1,4 +1,3 @@
-// client/styles/src/pages/Umkmdashboard.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { T } from '../../tokens';
@@ -25,7 +24,7 @@ const MILESTONES = [
   { label: 'Dana dicairkan' },
 ];
 
-// ── Helpers ──
+// Helpers
 function LoadingRow({ cols = 4 }) {
   return (
     <tr>
@@ -58,7 +57,7 @@ function EmptyState({ navigate }) {
   );
 }
 
-// ── Overview ──
+// Overview
 function Overview({ user, campaign, transactions, loading, navigate }) {
   const targetVal = campaign ? parseFloat(campaign.target_amount || 0) : 0;
   const raisedVal = campaign ? parseFloat(campaign.collected_amount || campaign.raised || 0) : 0;
@@ -170,7 +169,7 @@ function Overview({ user, campaign, transactions, loading, navigate }) {
   );
 }
 
-// ── Campaign Tab ──
+// Campaign Tab
 function CampaignTab({ campaigns, loading, navigate }) {
   if (loading) return <p style={{ color: T.gray500 }}>Memuat data campaign...</p>;
   if (!campaigns || campaigns.length === 0) return <EmptyState navigate={navigate} />;
@@ -241,7 +240,7 @@ function CampaignTab({ campaigns, loading, navigate }) {
   );
 }
 
-// ── Dana & Kewajiban Tab ──
+// Dana & Kewajiban Tab
 function DanaTab({ campaign, onToast }) {
   const [installments, setInstallments] = useState([]);
   const [summary, setSummary]           = useState(null);
@@ -302,7 +301,7 @@ function DanaTab({ campaign, onToast }) {
   const isDisbursed = campaign?.status === 'repaying' || campaign?.status === 'done';
   const filtered    = filterStatus === 'all' ? installments : installments.filter((i) => i.status === filterStatus);
 
-  // ── Belum dicairkan ──
+  // Belum dicairkan
   if (!loading && !isDisbursed && installments.length === 0) {
     const statusLabel = {
       pending:  { icon: '⏳', text: 'Campaign masih dalam proses persetujuan admin.', color: '#92400E', bg: '#FFFBEB', border: '#FDE68A' },
@@ -363,7 +362,7 @@ function DanaTab({ campaign, onToast }) {
     );
   }
 
-  // ── Sudah ada cicilan ──
+  // Sudah ada cicilan
   const disbursedAmount = campaign ? parseFloat(campaign.collected_amount || 0) : 0;
   const returnRate      = campaign?.return_rate || 0;
   const tenorMonths     = campaign?.tenor_months || 0;
@@ -549,13 +548,13 @@ function DanaTab({ campaign, onToast }) {
 
       {/* Catatan */}
       <div style={{ marginTop: '1rem', padding: '12px 16px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, fontSize: 13, color: '#92400E' }}>
-        ⚠️ Cicilan yang melewati jatuh tempo akan otomatis berstatus <strong>Terlambat</strong>. Segera bayar untuk menghindari denda dan menjaga kepercayaan investor.
+        Cicilan yang melewati jatuh tempo akan otomatis berstatus <strong>Terlambat</strong>. Segera bayar untuk menghindari denda dan menjaga kepercayaan investor.
       </div>
     </>
   );
 }
 
-// ── Toast ──
+// Toast
 function Toast({ message, type }) {
   return (
     <div style={{
@@ -569,7 +568,7 @@ function Toast({ message, type }) {
   );
 }
 
-// ── Main ──
+// Main
 export default function UMKMDashboard({ user }) {
   const navigate = useNavigate();
   const { tab: tabParam } = useParams();

@@ -2,8 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { T } from '../../tokens';
-// ✅ PERBAIKAN PATH: Mengambil logo secara dinamis dari folder assets sesuai image_2fd222.png
-import folkFundLogo from '../assets/Folk Fund.png';
+import folkLokaLogo from '../assets/Folk Loka.png';
 import { getNotifications, markAsRead, markAllAsRead } from '../services/notification';
 
 export default function Navbar({ role, user, onLogout }) {
@@ -152,8 +151,7 @@ export default function Navbar({ role, user, onLogout }) {
             }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
           >
-            {/* ✅ SEKARANG MENGGUNAKAN VARIABEL IMPORT YANG BENAR */}
-            <img src={folkFundLogo} alt="FolkFund" style={{ height: 28, objectFit: 'contain' }} />
+            <img src={folkLokaLogo} alt="FolkLoka" style={{ height: 28, objectFit: 'contain' }} />
           </button>
         </div>
 
@@ -359,7 +357,7 @@ export default function Navbar({ role, user, onLogout }) {
                   }}
                   style={{ display: 'block', width: '100%', padding: '10px 16px', fontSize: 14, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', color: '#DC2626' }}
                 >
-                  ⚖️ Keluar
+                  📤 Keluar
                 </button>
               </div>
             )}

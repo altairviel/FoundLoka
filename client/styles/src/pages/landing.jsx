@@ -2,10 +2,8 @@ import { T } from '../../tokens';
 import CampaignCard from '../components/CampaignCard';
 import { useState, useEffect } from 'react';
 import { getCampaigns } from '../services/campaign';
-import { useNavigate } from 'react-router-dom'; // 👈 1. Import useNavigate
-
-// ✅ SESUAI STRUKTUR: Mundur ke src, lalu masuk assets
-import folkFundLogo from '../assets/Folk Fund.png';
+import { useNavigate } from 'react-router-dom'; 
+import folkLokaLogo from '../assets/Folk Loka.png';
 import bannerImg from '../assets/banner.png';
 
 const STATS = [
@@ -40,8 +38,7 @@ function normalizeCampaign(c) {
 }
 
 export default function Landing({ role }) {
-  // 👈 2. Hapus setPage dari props
-  const navigate = useNavigate(); // 👈 3. Inisialisasi hook navigate
+  const navigate = useNavigate(); 
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -99,7 +96,7 @@ export default function Landing({ role }) {
 
           {/* Sisi Kanan: Gambar Banner */}
           <div style={{ flex: '1 1 350px', display: 'flex', justifyContent: 'center' }}>
-            <img src={bannerImg} alt="FolkFund Banner" style={{ width: '100%', maxWidth: '480px', height: 'auto', objectFit: 'contain' }} />
+            <img src={bannerImg} alt="FolkLoka Banner" style={{ width: '100%', maxWidth: '480px', height: 'auto', objectFit: 'contain' }} />
           </div>
         </div>
       </section>
@@ -126,7 +123,6 @@ export default function Landing({ role }) {
               <h2 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em' }}>Campaign aktif sekarang</h2>
               <p style={{ color: T.gray500, marginTop: 4, fontSize: 14 }}>Semua UMKM telah melalui proses verifikasi tim lapangan kami.</p>
             </div>
-            {/* 🚀 FIX: Diarahkan menggunakan rute URL ke halaman campaign */}
             <button className="ff-btn ff-btn-sm" onClick={() => navigate('/campaign')}>
               Lihat semua →
             </button>
@@ -156,7 +152,7 @@ export default function Landing({ role }) {
       <section className="ff-section" style={{ background: T.white, borderTop: T.border, borderBottom: T.border }}>
         <div className="ff-container">
           <div style={{ marginBottom: '2.5rem' }}>
-            <h2 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em' }}>Cara kerja FolkFund</h2>
+            <h2 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em' }}>Cara kerja FolkLoka</h2>
             <p style={{ color: T.gray500, marginTop: 6, fontSize: 14 }}>Sederhana, transparan, dan aman.</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px,1fr))', gap: '2rem' }}>
@@ -189,7 +185,7 @@ export default function Landing({ role }) {
       <footer style={{ borderTop: T.border, padding: '2rem 0', background: T.white }}>
         <div className="ff-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div className="ff-nav-logo">
-            <img src={folkFundLogo} alt="FolkFund Logo" style={{ height: '24px', objectFit: 'contain' }} />
+            <img src={folkLokaLogo} alt="FolkLoka Logo" style={{ height: '24px', objectFit: 'contain' }} />
           </div>
         </div>
       </footer>

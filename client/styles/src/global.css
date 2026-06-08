@@ -165,30 +165,30 @@ input, select, textarea { font-family: inherit; width: 100%; }
 .ff-sidebar-link.active { background: var(--greenLight); color: var(--green); font-weight: 500; }
 
 @media (max-width: 768px) {
-  /* 1. Reset Spacing Utama */
+  /* Reset Spacing Utama */
   .ff-section { padding: 2rem 0; }
   .ff-container { padding: 0 1rem; }
   .ff-card { padding: 1rem; }
 
-  /* 2. Tata Letak Grid Otomatis Menjadi 1 Kolom Kebawah */
+  /* Tata Letak Grid Otomatis Menjadi 1 Kolom Kebawah */
   .ff-grid-2, .ff-grid-3, .ff-grid-4 { 
     grid-template-columns: 1fr !important; 
     gap: 1rem; 
   }
 
-  /* 3. Menyembunyikan Sidebar Desktop Lama */
+  /* Menyembunyikan Sidebar Desktop Lama */
   .ff-sidebar-wrapper, .ff-sidebar { 
     display: none !important; 
   }
 
-  /* 4. Pengondisian Navbar Mobile */
+  /* Pengondisian Navbar Mobile */
   .ff-nav { padding: 0 1rem; }
-  .ff-nav-links { display: none !important; } /* Sembunyikan menu teks horizontal */
+  .ff-nav-links { display: none !important; } 
   .ff-hamburger-btn { display: block !important; } /* Tampilkan tombol laci ☰ */
-  .ff-user-info { display: none !important; } /* Sembunyikan teks nama user agar muat */
-  .ff-mobile-menu { display: block !important; } /* Aktifkan menu dropdown mobile */
+  .ff-user-info { display: none !important; } 
+  .ff-mobile-menu { display: block !important; } 
 
-  /* 5. Fleksibilitas Elemen Tombol & Form */
-  .ff-btn { width: 100%; } /* Tombol di mobile otomatis melebar penuh agar mudah ditekankan jari */
-  .ff-stat-num { font-size: 22px; } /* Ukuran angka dashboard sedikit diperkecil */
+  /* Fleksibilitas Elemen Tombol & Form */
+  .ff-btn { width: 100%; } 
+  .ff-stat-num { font-size: 22px; } 
 }

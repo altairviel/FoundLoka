@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import { BrowserRouter } from 'react-router-dom';
 import './global.css';
-import 'leaflet/dist/leaflet.css'; // 👈 TARUH DI SINI AGAR DIMUAT GLOBAL SEJAK AWAL!
+import 'leaflet/dist/leaflet.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

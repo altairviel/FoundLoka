@@ -1,22 +1,21 @@
-import { useNavigate } from 'react-router-dom'; // 👈 1. Import useNavigate
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { T } from '../../tokens';
 import { fmt, pct } from '../utils/format';
 
 export default function CampaignCard({ campaign }) {
-  // 👈 2. Hapus prop onClick karena dihandle internal
-  const navigate = useNavigate(); // 👈 3. Inisialisasi hook navigate
+  const navigate = useNavigate(); // Inisialisasi hook navigate
   const c = campaign;
 
   if (!c) {
-    console.trace('🔍 KETEMU! Pelaku yang ngirim data undefined adalah:');
+    console.trace('KETEMU! Pelaku yang ngirim data undefined adalah:');
     return <div style={{ padding: '1rem', color: 'red', border: '1px dashed red' }}>Data tidak valid</div>;
   }
 
   const progress = pct(c.raised, c.target);
 
-  // 👈 4. Fungsi helper untuk navigasi ke detail kampanye
+  // Fungsi helper untuk navigasi ke detail kampanye
   const handleNavigateToDetail = () => {
-    localStorage.setItem('selectedCampaignId', c.id); // Simpan ID kampanye ke local storage
+    localStorage.setItem('selectedCampaignId', c.id); 
     navigate(`/campaign-detail/${c.id}`); // Arahkan ke rute detail
   };
 
@@ -71,8 +70,8 @@ export default function CampaignCard({ campaign }) {
           <button
             className="ff-btn ff-btn-primary ff-btn-sm"
             onClick={(e) => {
-              e.stopPropagation(); // 👈 Mencegah double-trigger klik kontainer kartu
-              handleNavigateToDetail(); // 👈 Panggil fungsi navigasi
+              e.stopPropagation(); // Mencegah double-trigger klik kontainer kartu
+              handleNavigateToDetail(); //Panggil fungsi navigasi
             }}
           >
             Investasi Sekarang

@@ -92,12 +92,10 @@ function LoadingRow({ cols }) {
 }
 
 // ── Tab: Overview ──
-// ── Tab: Overview ──
 function OverviewTab({ user, stats, loadingStats }) {
   if (loadingStats) return <p style={{ color: T.gray500 }}>Memuat statistik...</p>;
 
   const s = stats || {};
-  // Buat fallback aman untuk objek campaigns agar tidak error saat bernilai undefined
   const campaignsObj = s.campaigns || {};
 
   return (
@@ -109,11 +107,8 @@ function OverviewTab({ user, stats, loadingStats }) {
 
       <div className="ff-grid-4" style={{ marginBottom: '1.5rem' }}>
         <StatCard label="Total Pengguna" value={s.total_users ?? '—'} />
-        {/* KOREKSI: Ambil dari s.campaigns.active */}
         <StatCard label="Campaign Aktif" value={campaignsObj.active ?? 0} accent />
-        {/* KOREKSI: Ambil dari s.campaigns.pending */}
         <StatCard label="Campaign Menunggu" value={campaignsObj.pending ?? 0} />
-        {/* KOREKSI: Ambil dari s.total_invested */}
         <StatCard label="Total Dana Terkumpul" value={s.total_invested != null ? fmt(s.total_invested) : '—'} accent />
       </div>
 
@@ -146,10 +141,8 @@ function OverviewTab({ user, stats, loadingStats }) {
         <div className="ff-card">
           <h3 style={{ fontWeight: 600, fontSize: 15, margin: '0 0 1rem' }}>Ringkasan Platform</h3>
           {[
-            /* KOREKSI: Menampilkan jumlah kali transaksi investasi dari total_investments_count */
             { label: 'Total Investasi (Transaksi)', value: s.total_investments_count ?? 0 },
             { label: 'Total Penarikan', value: s.total_withdrawals != null ? fmt(s.total_withdrawals) : '—' },
-            /* KOREKSI: Mengambil data status dari objek campaigns backend */
             { label: 'Campaign Selesai (Repaying)', value: campaignsObj.repaying ?? 0 },
             { label: 'Campaign Ditolak', value: campaignsObj.rejected ?? 0 },
           ].map((item) => (
@@ -173,7 +166,7 @@ function OverviewTab({ user, stats, loadingStats }) {
   );
 }
 
-// ── Tab: Campaigns ──
+
 // Aksi yang tersedia sesuai backend: approve, reject, disburse
 function CampaignsTab({ onToast }) {
   const [campaigns, setCampaigns] = useState([]);
@@ -216,8 +209,9 @@ function CampaignsTab({ onToast }) {
     }
   };
 
-  const FILTERS = ['all', 'pending', 'active', 'funded', 'rejected', 'disbursed'];
-  const FILTER_LABELS = { all: 'Semua', pending: 'Menunggu', active: 'Aktif', funded: 'Terdanai', rejected: 'Ditolak', disbursed: 'Dana Cair' };
+  // 💡 TOMBOL FILTER "DANA CAIR" DIHAPUS DI SINI
+  const FILTERS = ['all', 'pending', 'active', 'funded', 'rejected'];
+  const FILTER_LABELS = { all: 'Semua', pending: 'Menunggu', active: 'Aktif', funded: 'Terdanai', rejected: 'Ditolak' };
 
   const filtered = filter === 'all' ? campaigns : campaigns.filter((c) => c.status === filter);
 

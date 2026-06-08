@@ -34,7 +34,6 @@ function normalizeInvestment(inv) {
     status:          inv.campaign_status === 'active' ? 'active'
                    : inv.campaign_status === 'funded' ? 'funded'
                    : inv.status || inv.campaign_status || '—',
-    next_payout:     inv.next_payout || '—',
     type:            inv.type || 'Investasi',
     date:            inv.created_at,
   };
@@ -52,21 +51,17 @@ function Overview({ user, portfolio, transactions, loadingPortfolio, setTab }) {
     <>
       <div style={{ marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: 22, fontWeight: 600 }}>
-          Selamat datang, {user?.name?.split(' ')[0] || 'Investor'} 👋
+          Selamat datang, {user?.name?.split(' ')[0] || 'Investor'}
         </h2>
         <p style={{ fontSize: 14, color: T.gray500 }}>
           {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
       </div>
 
-      <div className="ff-grid-4" style={{ marginBottom: '1.5rem' }}>
+      <div className="ff-grid-3" style={{ marginBottom: '1.5rem' }}>
         <StatCard label="Total Diinvestasikan" value={fmt(totalInvested)} />
         <StatCard label="Total Return" value={fmt(totalReturn)} accent />
         <StatCard label="Portfolio Aktif" value={`${activeCount} campaign`} />
-        <StatCard
-          label="ROI Keseluruhan"
-          value={totalInvested > 0 ? `${((totalReturn / totalInvested) * 100).toFixed(1)}%` : '0%'}
-        />
       </div>
 
       <div className="ff-card" style={{ marginBottom: '1.5rem' }}>
@@ -78,14 +73,14 @@ function Overview({ user, portfolio, transactions, loadingPortfolio, setTab }) {
           <table className="ff-table">
             <thead>
               <tr>
-                <th>Campaign</th><th>Modal</th><th>Return</th><th>Status</th><th>Payout berikutnya</th>
+                <th>Campaign</th><th>Modal</th><th>Return</th><th>Status</th>
               </tr>
             </thead>
             <tbody>
               {loadingPortfolio
                 ? [1, 2, 3].map((i) => <LoadingRow key={i} />)
                 : safePortfolio.length === 0
-                  ? <tr><td colSpan={5} style={{ textAlign: 'center', color: T.gray500, padding: '2rem' }}>Belum ada investasi aktif.</td></tr>
+                  ? <tr><td colSpan={4} style={{ textAlign: 'center', color: T.gray500, padding: '2rem' }}>Belum ada investasi aktif.</td></tr>
                   : safePortfolio.slice(0, 5).map((p, i) => (
                     <tr key={i}>
                       <td style={{ fontWeight: 500 }}>{p.campaign_name}</td>
@@ -96,7 +91,6 @@ function Overview({ user, portfolio, transactions, loadingPortfolio, setTab }) {
                           {p.status === 'active' ? 'Aktif' : p.status === 'funded' ? 'Terdanai' : p.status}
                         </span>
                       </td>
-                      <td style={{ fontSize: 13, color: T.gray500 }}>{p.next_payout}</td>
                     </tr>
                   ))
               }
@@ -147,14 +141,14 @@ function PortfolioTab({ portfolio, loading }) {
         <table className="ff-table">
           <thead>
             <tr>
-              <th>Campaign</th><th>Modal</th><th>Return/th</th><th>Return diterima</th><th>Status</th><th>Payout berikut</th>
+              <th>Campaign</th><th>Modal</th><th>Return/th</th><th>Return diterima</th><th>Status</th>
             </tr>
           </thead>
           <tbody>
             {loading
               ? [1, 2, 3].map((i) => <LoadingRow key={i} />)
               : safePortfolio.length === 0
-                ? <tr><td colSpan={6} style={{ textAlign: 'center', color: T.gray500, padding: '2rem' }}>Belum ada portfolio.</td></tr>
+                ? <tr><td colSpan={5} style={{ textAlign: 'center', color: T.gray500, padding: '2rem' }}>Belum ada portfolio.</td></tr>
                 : safePortfolio.map((p, i) => (
                   <tr key={i}>
                     <td style={{ fontWeight: 500 }}>{p.campaign_name}</td>
@@ -166,7 +160,6 @@ function PortfolioTab({ portfolio, loading }) {
                         {p.status === 'active' ? 'Aktif' : p.status === 'funded' ? 'Terdanai' : p.status}
                       </span>
                     </td>
-                    <td style={{ fontSize: 13, color: T.gray500 }}>{p.next_payout}</td>
                   </tr>
                 ))
             }
@@ -299,7 +292,7 @@ export default function InvestorDashboard({ user, setPage }) {
           <div style={{ fontSize: 12, color: T.gray500 }}>Investor</div>
         </div>
 
-        {/* JIKA DEKTOP: Gunakan komponen asli. JIKA MOBILE: Render menu internal murni yang anti-gagal */}
+
         {!isMobile ? (
           <Sidebar links={SIDEBAR_LINKS} activeTab={tab} setTab={setTab} footer={saldoFooter} />
         ) : (

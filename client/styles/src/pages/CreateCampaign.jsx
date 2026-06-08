@@ -1,5 +1,3 @@
-// client/styles/src/pages/CreateCampaign.jsx
-// Owner only — form pengajuan kampanye baru, 4 step
 import { useState, useEffect } from 'react';
 import { T } from '../../tokens';
 import api from '../services/api';
@@ -7,7 +5,6 @@ import api from '../services/api';
 const CATEGORIES = ['Kuliner', 'Fashion', 'Agrikultur', 'Kerajinan', 'Perikanan', 'Teknologi', 'Lainnya'];
 const STEPS = ['Info Usaha', 'Detail Pendanaan', 'Lokasi', 'Konfirmasi'];
 
-// ── Helper ──
 const rupiah = (n) => (n ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n) : '—');
 
 export default function CreateCampaign({ user, onSuccess, onCancel }) {
@@ -23,7 +20,7 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
     target_amount: '',
     return_rate: '',
     tenor_months: '',
-    repayment_type: 'cicilan', // ← BARU: 'cicilan' | 'lunas'
+    repayment_type: 'cicilan', 
     deadline: '',
     address: '',
     lat: '',
@@ -48,7 +45,7 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
     setError('');
   };
 
-  // ── Validasi per step ──
+  // Validasi per step 
   const validate = () => {
     if (step === 0) {
       if (!form.title.trim()) return 'Nama usaha wajib diisi';
@@ -107,7 +104,7 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
     }
   };
 
-  // ── Style helpers ──
+  // Style helpers 
   const inputStyle = {
     width: '100%',
     padding: '10px 12px',
@@ -126,14 +123,14 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
     marginBottom: 6,
   };
 
-  // ── Kalkulasi preview ──
+  //  Kalkulasi preview 
   const targetNum = parseFloat(form.target_amount) || 0;
   const rateNum = parseFloat(form.return_rate) || 0;
   const tenorNum = parseInt(form.tenor_months) || 1;
   const totalReturn = targetNum > 0 ? Math.round(targetNum * (1 + rateNum / 100)) : 0;
   const monthlyAmt = form.repayment_type === 'cicilan' && tenorNum > 0 ? Math.round(totalReturn / tenorNum) : 0;
 
-  // ── Halaman sukses ──
+  //  Halaman sukses 
   if (success)
     return (
       <div style={{ background: T.gray50, minHeight: 'calc(100vh - 56px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
@@ -279,7 +276,7 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
             </div>
           )}
 
-          {/* ══ STEP 1: DETAIL PENDANAAN ══ */}
+          {/*DETAIL PENDANAAN*/}
           {step === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 0 }}>Detail Pendanaan</h2>
@@ -302,7 +299,7 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
                 <div style={{ fontSize: 12, color: T.gray500, marginTop: 4 }}>Berapa % dari modal yang akan kamu kembalikan di atas pokok. Range: 1% – 50%</div>
               </div>
 
-              {/* ── JENIS PENGEMBALIAN ── */}
+              {/*  JENIS PENGEMBALIAN  */}
               <div>
                 <label style={labelStyle}>
                   Jenis Pengembalian <span style={{ color: '#EF4444' }}>*</span>
@@ -404,7 +401,7 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
             </div>
           )}
 
-          {/* ══ STEP 2: LOKASI ══ */}
+          {/* LOKASI */}
           {step === 2 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 0 }}>Lokasi Usaha</h2>
@@ -443,7 +440,7 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
             </div>
           )}
 
-          {/* ══ STEP 3: KONFIRMASI ══ */}
+          {/* KONFIRMASI */}
           {step === 3 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 0 }}>Konfirmasi & Ajukan</h2>

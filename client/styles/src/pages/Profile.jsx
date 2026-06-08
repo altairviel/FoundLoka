@@ -1,4 +1,3 @@
-// client/src/pages/Profile.jsx
 import { useState, useEffect } from 'react';
 import { T } from '../../tokens';
 import StatCard from '../components/StatCard';
@@ -14,13 +13,12 @@ export default function Profile({ user, setUser, role }) {
   const [editForm, setEditForm]           = useState({ name: '', phone: '' });
   const [updateLoading, setUpdateLoading] = useState(false);
 
-  // Tab ubah password
   const [showPasswordForm, setShowPasswordForm]     = useState(false);
   const [passwordForm, setPasswordForm]             = useState({ oldPassword: '', newPassword: '', confirmNew: '' });
   const [passwordLoading, setPasswordLoading]       = useState(false);
-  const [passwordError, setPasswordError]           = useState(''); // ✅ State khusus error password
+  const [passwordError, setPasswordError]           = useState(''); 
 
-  // ✅ State untuk melacak mode mobile secara dinamis
+  // State untuk melacak mode mobile secara dinamis
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
@@ -140,7 +138,7 @@ export default function Profile({ user, setUser, role }) {
           </div>
         )}
 
-        {/* ✅ Mengubah grid 2 kolom menjadi 1 kolom jika di layar HP */}
+        {/* Mengubah grid 2 kolom menjadi 1 kolom jika di layar HP */}
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: isMobile ? '1fr' : '1fr 300px', 

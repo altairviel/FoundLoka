@@ -109,7 +109,7 @@ export default function CampaignDetail({ role }) {
     setReviewMsg('');
     try {
       await api.post('/reviews', { campaign_id: campaign.id, rating: reviewRating, comment: reviewComment });
-      setReviewMsg('✅ Review berhasil dikirim!');
+      setReviewMsg('Review berhasil dikirim!');
       setShowReviewForm(false);
       const revRes = await api.get(`/reviews/campaign/${campaign.id}`);
       setReviews(Array.isArray(revRes.data?.reviews) ? revRes.data.reviews : []);
@@ -259,7 +259,7 @@ export default function CampaignDetail({ role }) {
                           <td style={{ fontSize: 13, color: T.gray500 }}>{inst.due_date ? new Date(inst.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</td>
                           <td style={{ fontWeight: 600 }}>{fmt(inst.amount)}</td>
                           <td>
-                            {/* 💡 SINKRONISASI TOMBOL PEMBAYARAN CICILAN KHUSUS OWNER */}
+                            {/* SINKRONISASI TOMBOL PEMBAYARAN CICILAN KHUSUS OWNER */}
                             {inst.status === 'paid' ? (
                               <span className="ff-badge ff-badge-green">Lunas</span>
                             ) : role === 'owner' || role === 'umkm' ? (
