@@ -3,15 +3,12 @@ import { useState, useEffect } from 'react';
 import { T } from '../../tokens';
 import Sidebar from '../components/Sidebar';
 import StatCard from '../components/StatCard';
-import CampaignCard from '../components/CampaignCard';
 import { getPortfolio } from '../services/user';
-import { getCampaigns } from '../services/campaign';
 import { fmt } from '../utils/format';
 
 const SIDEBAR_LINKS = [
   { id: 'overview',  icon: '⊡', label: 'Ringkasan' },
   { id: 'portfolio', icon: '◈', label: 'Portfolio' },
-  { id: 'explore',   icon: '◎', label: 'Jelajahi Campaign' },
   { id: 'txn',       icon: '⊞', label: 'Transaksi' },
 ];
 
@@ -39,24 +36,7 @@ function normalizeInvestment(inv) {
                    : inv.status || inv.campaign_status || '—',
     next_payout:     inv.next_payout || '—',
     type:            inv.type || 'Investasi',
-    date:          inv.created_at,
-  };
-}
-
-function normalizeCampaign(c) {
-  return {
-    ...c,
-    name:      c.name      || c.title             || '—',
-    sector:    c.sector    || c.category          || '—',
-    raised:    c.raised    || c.collected_amount  || 0,
-    target:    c.target    || c.target_amount     || 1,
-    return:    c.return    || (c.return_rate  != null ? `${c.return_rate}%`      : '—'),
-    tenor:     c.tenor     || (c.tenor_months != null ? `${c.tenor_months} bln`  : '—'),
-    investors: c.investors || c.investor_count     || 0,
-    desc:      c.desc      || c.description        || '',
-    img:       c.img       || c.icon               || '🏪',
-    risk:      c.risk      || c.risk_level         || '—',
-    location:  c.location  || '—',
+    date:            inv.created_at,
   };
 }
 
@@ -197,27 +177,6 @@ function PortfolioTab({ portfolio, loading }) {
   );
 }
 
-function ExploreTab({ campaigns, loading }) {
-  return (
-    <>
-      <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 6 }}>Jelajahi Campaign</h2>
-      <p style={{ fontSize: 14, color: T.gray500, marginBottom: '1.5rem' }}>Semua UMKM telah diverifikasi tim FolkFund.</p>
-      {loading
-        ? <p style={{ color: T.gray500 }}>Memuat campaign...</p>
-        : campaigns.length === 0
-          ? <p style={{ color: T.gray500 }}>Belum ada campaign tersedia.</p>
-          : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px,1fr))', gap: '1rem' }}>
-              {campaigns.map((c) => (
-                <CampaignCard key={c.id} c={c} onClick={() => {}} />
-              ))}
-            </div>
-          )
-      }
-    </>
-  );
-}
-
 function TransaksiTab({ transactions, loading }) {
   const safeTransactions = Array.isArray(transactions) ? transactions : [];
   return (
@@ -259,9 +218,7 @@ function TransaksiTab({ transactions, loading }) {
 export default function InvestorDashboard({ user, setPage }) {
   const [tab, setTab]                           = useState('overview');
   const [portfolio, setPortfolio]               = useState([]);
-  const [campaigns, setCampaigns]               = useState([]);
   const [loadingPortfolio, setLoadingPortfolio] = useState(true);
-  const [loadingCampaigns, setLoadingCampaigns] = useState(true);
   const [isOpenMobileMenu, setIsOpenMobileMenu] = useState(false);
   const [isMobile, setIsMobile]                 = useState(window.innerWidth <= 768);
 
@@ -287,23 +244,6 @@ export default function InvestorDashboard({ user, setPage }) {
     };
     fetchData();
   }, []);
-
-  useEffect(() => {
-    if (tab !== 'explore') return;
-    const fetchCampaigns = async () => {
-      setLoadingCampaigns(true);
-      try {
-        const res = await getCampaigns();
-        const raw = res.data?.campaigns || res.data || [];
-        setCampaigns(raw.map(normalizeCampaign));
-      } catch (err) {
-        console.error('Gagal fetch campaigns:', err.message);
-      } finally {
-        setLoadingCampaigns(false);
-      }
-    };
-    fetchCampaigns();
-  }, [tab]);
 
   const initials = user?.name
     ? user.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
@@ -402,7 +342,6 @@ export default function InvestorDashboard({ user, setPage }) {
       }}>
         {tab === 'overview'  && <Overview user={user} portfolio={portfolio} transactions={portfolio} loadingPortfolio={loadingPortfolio} setTab={setTab} />}
         {tab === 'portfolio' && <PortfolioTab portfolio={portfolio} loading={loadingPortfolio} />}
-        {tab === 'explore'   && <ExploreTab campaigns={campaigns} loading={loadingCampaigns} />}
         {tab === 'txn'       && <TransaksiTab transactions={portfolio} loading={loadingPortfolio} />}
       </main>
     </div>

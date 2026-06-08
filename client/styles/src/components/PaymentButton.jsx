@@ -49,7 +49,7 @@ export default function PaymentButton({
             const token = localStorage.getItem('token');
 
             // 💡 Paksa backend lokal memperbarui database secara instan
-            await axios.post('http://localhost:5000/api/payments/demo-success', { order_id: result.order_id || orderId }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.post('https://contact-mumble-unfunded.ngrok-free.dev/api/payments/demo-success', { order_id: result.order_id || orderId }, { headers: { Authorization: `Bearer ${token}` } });
 
             // Jalankan fungsi fetchDetail() bawaan dari CampaignDetail.jsx
             if (onSuccess) onSuccess(result);
