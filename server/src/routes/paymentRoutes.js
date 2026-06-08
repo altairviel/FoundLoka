@@ -3,10 +3,10 @@ const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 const { createInvestmentPayment, createInstallmentPayment, handleWebhook, checkStatus } = require('../controllers/paymentController');
 
-// Impor koneksi pool PostgreSQL kamu (sesuaikan path jika berbeda)
+//Impor koneksi pool PostgreSQL kamu (sesuaikan path jika berbeda)
 const pool = require('../config/db');
 
-// ── RUTE UTAMA APLIKASI ───────────────────────────────────────────────────
+//RUTE UTAMA APLIKASI
 router.post('/invest', protect, createInvestmentPayment);
 router.post('/installment', protect, createInstallmentPayment);
 router.post('/webhook', handleWebhook);

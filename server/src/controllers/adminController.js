@@ -1,24 +1,39 @@
 const pool = require('../config/db');
 
 //GET /api/admin/stats, untuk melihat statistik platform
+// GET /api/admin/stats
 const getStats = async (req, res) => {
   try {
-    const [users, campaigns, investments] = await Promise.all([
+    const [users, roles, campaigns, investments] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM users'),
+      // Query baru: hitung total user dikelompokkan berdasarkan role
+      pool.query('SELECT role, COUNT(*) FROM users GROUP BY role'),
       pool.query('SELECT status, COUNT(*) FROM campaigns GROUP BY status'),
       pool.query('SELECT COUNT(*), COALESCE(SUM(amount),0) AS total FROM investments'),
     ]);
+
+    // Petakan hasil count per role ke dalam object pendukung
+    const roleStats = { investor: 0, owner: 0, admin: 0 };
+    roles.rows.forEach((r) => {
+      if (r.role === 'investor') roleStats.investor = parseInt(r.count);
+      if (r.role === 'owner') roleStats.owner = parseInt(r.count);
+      if (r.role === 'admin') roleStats.admin = parseInt(r.count);
+    });
 
     const campaignStats = {};
     campaigns.rows.forEach((r) => {
       campaignStats[r.status] = parseInt(r.count);
     });
 
+    // Kirim data yang presisi dan lengkap sesuai kebutuhan frontend
     res.json({
       total_users: parseInt(users.rows[0].count),
+      total_investors: roleStats.investor, // Sekarang murni jumlah user investor (5)
+      total_owners: roleStats.owner, // Jumlah user owner (8)
+      total_admins: roleStats.admin, // Jumlah user admin (2)
       campaigns: campaignStats,
       total_invested: parseFloat(investments.rows[0].total),
-      total_investors: parseInt(investments.rows[0].count),
+      total_investments_count: parseInt(investments.rows[0].count), // Ini jumlah transaksi (12)
     });
   } catch (err) {
     console.error('Stats error:', err.message);

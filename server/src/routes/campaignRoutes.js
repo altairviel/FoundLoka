@@ -10,5 +10,4 @@ router.post('/', protect, ownerOnly, createCampaign); //owner, api/campaigns
 router.get('/', getCampaigns); //publik, api/campaigns
 
 router.get('/:id', getCampaignById); //publik, api/campaigns/:id
-router.put('/:id/proof', protect, ownerOnly, uploadProof); //owner, api/campaigns/:id/proof
 module.exports = router;

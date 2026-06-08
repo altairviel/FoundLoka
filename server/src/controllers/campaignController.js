@@ -161,30 +161,6 @@ const getCampaignById = async (req, res) => {
   }
 };
 
-//PUT api/campaigns/:id/proof, tempat owner upload URL foto bukti pembelian aset untuk milestone
-const uploadProof = async (req, res) => {
-  const { id } = req.params;
-  const { proof_url } = req.body;
-
-  if (!proof_url) {
-    return res.status(400).json({ message: 'URL bukti wajib diisi' });
-  }
-
-  try {
-    //memastikan klw kampanye milik owner yang login
-    const check = await pool.query('SELECT id FROM campaigns WHERE id = $1 AND owner_id = $2', [id, req.user.id]);
-    if (check.rows.length === 0) {
-      return res.status(403).json({ message: 'Kampanye tidak ditemukan atau bukan milikmu' });
-    }
-
-    await pool.query('UPDATE campaigns SET proof_url = $1 WHERE id = $2', [proof_url, id]);
-    res.json({ message: 'Bukti pembelian berhasil diupload' });
-  } catch (err) {
-    console.error('Upload proof error:', err.message);
-    res.status(500).json({ message: 'Terjadi kesalahan server' });
-  }
-};
-
 //GET api/campaigns//map,data ringkas untuk pin di Leaflet map
 const getMapData = async (req, res) => {
   try {
@@ -201,4 +177,4 @@ const getMapData = async (req, res) => {
   }
 };
 
-module.exports = { createCampaign, getCampaigns, getMyCampaigns, getCampaignById, uploadProof, getMapData };
+module.exports = { createCampaign, getCampaigns, getMyCampaigns, getCampaignById, getMapData };
