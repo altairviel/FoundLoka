@@ -165,59 +165,65 @@ function Overview({ user, campaign, transactions, loading, navigate }) {
 }
 
 // ── Campaign Tab ──
-function CampaignTab({ campaign, loading, navigate }) {
+function CampaignTab({ campaigns, loading, navigate }) {
   if (loading) return <p style={{ color: T.gray500 }}>Memuat data campaign...</p>;
-  if (!campaign) return <EmptyState navigate={navigate} />;
-
-  const targetVal = parseFloat(campaign.target_amount || 0);
-  const raisedVal = parseFloat(campaign.collected_amount || campaign.raised || 0);
-  const progress  = pct(raisedVal, targetVal > 0 ? targetVal : 1);
+  if (!campaigns || campaigns.length === 0) return <EmptyState navigate={navigate} />;
 
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: 22, fontWeight: 600, margin: 0 }}>Campaign Saya</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 600, margin: 0 }}>Campaign Saya ({campaigns.length})</h2>
         <button className="ff-btn ff-btn-sm" onClick={() => navigate('/create-campaign')}>
           + Campaign Baru
         </button>
       </div>
 
-      <div className="ff-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
-          <div>
-            <h3 style={{ fontWeight: 700, fontSize: 18, margin: '0 0 6px' }}>{campaign.title || campaign.name}</h3>
-            <p style={{ color: T.gray500, fontSize: 13, margin: 0 }}>{campaign.description || '—'}</p>
-          </div>
-          <span className={`ff-badge ${campaign.status === 'active' ? 'ff-badge-green' : 'ff-badge-gray'}`}>
-            {campaign.status === 'active' ? 'Aktif' : campaign.status === 'pending' ? 'Menunggu Verifikasi' : campaign.status || '—'}
-          </span>
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {campaigns.map((campaign) => {
+          const targetVal = parseFloat(campaign.target_amount || 0);
+          const raisedVal = parseFloat(campaign.collected_amount || campaign.raised || 0);
+          const progress  = pct(raisedVal, targetVal > 0 ? targetVal : 1);
 
-        <div className="ff-grid-2" style={{ marginBottom: '1.5rem' }}>
-          <StatCard label="Dana Terkumpul"  value={fmt(raisedVal)} accent />
-          <StatCard label="Target"          value={fmt(targetVal)} />
-        </div>
+          return (
+            <div key={campaign.id} className="ff-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+                <div>
+                  <h3 style={{ fontWeight: 700, fontSize: 18, margin: '0 0 6px' }}>{campaign.title || campaign.name}</h3>
+                  <p style={{ color: T.gray500, fontSize: 13, margin: 0 }}>{campaign.description || '—'}</p>
+                </div>
+                <span className={`ff-badge ${campaign.status === 'active' ? 'ff-badge-green' : 'ff-badge-gray'}`}>
+                  {campaign.status === 'active' ? 'Aktif' : campaign.status === 'pending' ? 'Menunggu Verifikasi' : campaign.status || '—'}
+                </span>
+              </div>
 
-        <ProgressBar value={progress} />
-        <div style={{ textAlign: 'right', marginTop: 6, fontSize: 13, color: T.gray500 }}>
-          {progress}% tercapai
-        </div>
+              <div className="ff-grid-2" style={{ marginBottom: '1.5rem' }}>
+                <StatCard label="Dana Terkumpul"  value={fmt(raisedVal)} accent />
+                <StatCard label="Target"          value={fmt(targetVal)} />
+              </div>
 
-        <div style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-          {[
-            { label: 'Kategori',   value: campaign.category || campaign.sector || '—' },
-            { label: 'Lokasi',     value: campaign.location || '—' },
-            { label: 'Return/th',  value: campaign.return_rate != null ? `${campaign.return_rate}%` : '—' },
-            { label: 'Tenor',      value: campaign.tenor_months != null ? `${campaign.tenor_months} bulan` : '—' },
-            { label: 'Investor',   value: `${campaign.investor_count || 0} orang` },
-            { label: 'Dibuat',     value: campaign.created_at ? new Date(campaign.created_at).toLocaleDateString('id-ID') : '—' },
-          ].map((item) => (
-            <div key={item.label} style={{ padding: '12px', background: T.gray50, borderRadius: 8 }}>
-              <div style={{ fontSize: 11, color: T.gray500, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: T.gray900 }}>{item.value}</div>
+              <ProgressBar value={progress} />
+              <div style={{ textAlign: 'right', marginTop: 6, fontSize: 13, color: T.gray500 }}>
+                {progress}% tercapai
+              </div>
+
+              <div style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                {[
+                  { label: 'Kategori',   value: campaign.category || campaign.sector || '—' },
+                  { label: 'Lokasi',     value: campaign.location || campaign.address || '—' },
+                  { label: 'Return/th',  value: campaign.return_rate != null ? `${campaign.return_rate}%` : '—' },
+                  { label: 'Tenor',      value: campaign.tenor_months != null ? `${campaign.tenor_months} bulan` : '—' },
+                  { label: 'Investor',   value: `${campaign.investor_count || 0} orang` },
+                  { label: 'Dibuat',     value: campaign.created_at ? new Date(campaign.created_at).toLocaleDateString('id-ID') : '—' },
+                ].map((item) => (
+                  <div key={item.label} style={{ padding: '12px', background: T.gray50, borderRadius: 8 }}>
+                    <div style={{ fontSize: 11, color: T.gray500, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: T.gray900 }}>{item.value}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </>
   );
@@ -591,7 +597,8 @@ function Toast({ message, type }) {
 export default function UMKMDashboard({ user }) {
   const navigate = useNavigate();
   const [tab, setTab]                   = useState('overview');
-  const [campaign, setCampaign]         = useState(null);
+  const [campaign, setCampaign]         = useState(null);   // kampanye pertama (untuk Overview & DanaTab)
+  const [campaigns, setCampaigns]       = useState([]);     // semua kampanye (untuk CampaignTab)
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading]           = useState(true);
   const [toast, setToast]               = useState(null);
@@ -610,16 +617,14 @@ export default function UMKMDashboard({ user }) {
         const [campRes, txnRes] = await Promise.all([getMyCampaign(), getTransactions()]);
 
         const campList = campRes.data?.campaigns || campRes.data;
-        let campData = null;
-        if (Array.isArray(campList) && campList.length > 0) {
-          campData = campList[0];
-        } else if (campList && !Array.isArray(campList) && Object.keys(campList).length > 0) {
-          campData = campList;
+        let allCamps = [];
+        if (Array.isArray(campList)) {
+          allCamps = campList.filter((c) => c.title && parseFloat(c.target_amount) > 0);
+        } else if (campList && typeof campList === 'object' && campList.title) {
+          allCamps = [campList];
         }
-        if (campData && (!campData.title || parseFloat(campData.target_amount) === 0)) {
-          campData = null;
-        }
-        setCampaign(campData);
+        setCampaigns(allCamps);
+        setCampaign(allCamps.length > 0 ? allCamps[0] : null);
 
         const tData = txnRes.data?.transactions || txnRes.data?.investments || txnRes.data;
         setTransactions(Array.isArray(tData) ? tData : []);
@@ -739,7 +744,7 @@ export default function UMKMDashboard({ user }) {
         background: T.gray50, overflow: 'auto', width: '100%',
       }}>
         {tab === 'overview' && <Overview user={user} campaign={campaign} transactions={transactions} loading={loading} navigate={navigate} />}
-        {tab === 'campaign' && <CampaignTab campaign={campaign} loading={loading} navigate={navigate} />}
+        {tab === 'campaign' && <CampaignTab campaigns={campaigns} loading={loading} navigate={navigate} />}
         {tab === 'txn'      && <TransaksiTab transactions={transactions} loading={loading} />}
         {tab === 'dana'     && <DanaTab campaign={campaign} onToast={showToast} />}
       </main>
