@@ -2,6 +2,7 @@ import { T } from '../../tokens';
 import CampaignCard from '../components/CampaignCard'; 
 import { useState, useEffect } from 'react';
 import { getCampaigns } from '../services/campaign';
+import { useNavigate } from 'react-router-dom'; // 👈 1. Import useNavigate
 
 // ✅ SESUAI STRUKTUR: Mundur ke src, lalu masuk assets
 import folkFundLogo from '../assets/Folk Fund.png'; 
@@ -38,7 +39,8 @@ function normalizeCampaign(c) {
   };
 }
 
-export default function Landing({ role, setPage }) {
+export default function Landing({ role }) { // 👈 2. Hapus setPage dari props
+  const navigate = useNavigate(); // 👈 3. Inisialisasi hook navigate
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -75,19 +77,19 @@ export default function Landing({ role, setPage }) {
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               {role === 'investor' ? (
                 <>
-                  <button className="ff-btn ff-btn-primary" style={{ padding: '10px 24px', fontSize: 15 }} onClick={() => setPage('campaign')}>
+                  <button className="ff-btn ff-btn-primary" style={{ padding: '10px 24px', fontSize: 15 }} onClick={() => navigate('/campaign')}>
                     Lihat Campaign →
                   </button>
-                  <button className="ff-btn" style={{ padding: '10px 24px', fontSize: 15 }} onClick={() => setPage('investor')}>
+                  <button className="ff-btn" style={{ padding: '10px 24px', fontSize: 15 }} onClick={() => navigate('/investor')}>
                     Dashboard Portofolio
                   </button>
                 </>
               ) : (
                 <>
-                  <button className="ff-btn ff-btn-primary" style={{ padding: '10px 24px', fontSize: 15 }} onClick={() => setPage('umkm')}>
+                  <button className="ff-btn ff-btn-primary" style={{ padding: '10px 24px', fontSize: 15 }} onClick={() => navigate('/umkm')}>
                     Kelola Campaign UMKM →
                   </button>
-                  <button className="ff-btn" style={{ padding: '10px 24px', fontSize: 15 }} onClick={() => setPage('campaign')}>
+                  <button className="ff-btn" style={{ padding: '10px 24px', fontSize: 15 }} onClick={() => navigate('/campaign')}>
                     Jelajahi Campaign Lain
                   </button>
                 </>
@@ -129,7 +131,8 @@ export default function Landing({ role, setPage }) {
               <h2 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em' }}>Campaign aktif sekarang</h2>
               <p style={{ color: T.gray500, marginTop: 4, fontSize: 14 }}>Semua UMKM telah melalui proses verifikasi tim lapangan kami.</p>
             </div>
-            <button className="ff-btn ff-btn-sm" onClick={() => setPage('campaign')}>
+            {/* 🚀 FIX: Diarahkan menggunakan rute URL ke halaman campaign */}
+            <button className="ff-btn ff-btn-sm" onClick={() => navigate('/campaign')}>
               Lihat semua →
             </button>
           </div>
@@ -146,7 +149,8 @@ export default function Landing({ role, setPage }) {
                   campaign={c}
                   onClick={() => {
                     localStorage.setItem('selectedCampaignId', c.id);
-                    setPage('campaign-detail');
+                    // 🚀 FIX: Navigasi dinamis langsung ke ID detail campaign sesuai rute App.jsx
+                    navigate(`/campaign-detail/${c.id}`); 
                   }}
                 />
               ))}
@@ -192,7 +196,6 @@ export default function Landing({ role, setPage }) {
       <footer style={{ borderTop: T.border, padding: '2rem 0', background: T.white }}>
         <div className="ff-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div className="ff-nav-logo">
-            {/* ✅ PERBAIKAN: Menggunakan variabel logo hasil import dari assets */}
             <img src={folkFundLogo} alt="FolkFund Logo" style={{ height: '24px', objectFit: 'contain' }} />
           </div>
         </div>

@@ -1,5 +1,6 @@
 // client/styles/src/pages/Campaignpage.jsx
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // 👈 1. Import useNavigate untuk routing
 import { T } from '../../tokens';
 import CampaignCard from '../components/CampaignCard';
 import { getCampaigns } from '../services/campaign';
@@ -25,7 +26,8 @@ function normalizeCampaign(c) {
   };
 }
 
-export default function CampaignPage({ role, setPage, setSelectedCampaign }) {
+export default function CampaignPage({ role, setSelectedCampaign }) { // 👈 2. Hapus prop setPage
+  const navigate = useNavigate(); // 👈 3. Inisialisasi hook navigate
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -70,9 +72,11 @@ export default function CampaignPage({ role, setPage, setSelectedCampaign }) {
 
   const filtered = campaigns.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()) || c.desc.toLowerCase().includes(search.toLowerCase()) || c.location.toLowerCase().includes(search.toLowerCase()));
 
+  // 🚀 FIX MUTLAK: Menyimpan ID ke localStorage dan navigasi ke URL detail pembayaran
   const handleCardClick = (c) => {
-    setSelectedCampaign(c);
-    setPage('campaignDetail');
+    if (setSelectedCampaign) setSelectedCampaign(c);
+    localStorage.setItem('selectedCampaignId', c.id); // 👈 Disimpan agar dibaca oleh CampaignDetail
+    navigate(`/campaign-detail/${c.id}`); // 👈 Pindah halaman ke detail pembayaran
   };
 
   return (
