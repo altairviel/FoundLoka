@@ -1,14 +1,14 @@
 // client/styles/src/components/Navbar.jsx
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; 
+import { useNavigate, useLocation } from 'react-router-dom';
 import { T } from '../../tokens';
 // ✅ PERBAIKAN PATH: Mengambil logo secara dinamis dari folder assets sesuai image_2fd222.png
 import folkFundLogo from '../assets/Folk Fund.png';
 import { getNotifications, markAsRead, markAllAsRead } from '../services/notification';
 
 export default function Navbar({ role, user, onLogout }) {
-  const navigate = useNavigate(); 
-  const location = useLocation(); 
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [showNotif, setShowNotif] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -93,13 +93,14 @@ export default function Navbar({ role, user, onLogout }) {
   };
 
   // Admin tidak punya akses ke halaman lain selain dashboard-nya sendiri
-  const navLinks = role === 'admin'
-    ? []
-    : [
-        { path: '/campaign', label: 'Kampanye' },
-        { path: '/map', label: 'Peta' },
-        { path: dashboardPath, label: 'Dashboard' },
-      ];
+  const navLinks =
+    role === 'admin'
+      ? []
+      : [
+          { path: '/campaign', label: 'Kampanye' },
+          { path: '/map', label: 'Peta' },
+          { path: dashboardPath, label: 'Dashboard' },
+        ];
 
   return (
     <>
@@ -122,24 +123,24 @@ export default function Navbar({ role, user, onLogout }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {/* Hamburger hanya untuk non-admin */}
           {role !== 'admin' && (
-          <button
-            className="ff-hamburger-btn"
-            onClick={() => {
-              setShowMobileMenu(!showMobileMenu);
-              setShowNotif(false);
-              setShowUserMenu(false);
-            }}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: 24,
-              color: T.gray700,
-              padding: 4,
-            }}
-          >
-            {showMobileMenu ? '✕' : '☰'}
-          </button>
+            <button
+              className="ff-hamburger-btn"
+              onClick={() => {
+                setShowMobileMenu(!showMobileMenu);
+                setShowNotif(false);
+                setShowUserMenu(false);
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 24,
+                color: T.gray700,
+                padding: 4,
+              }}
+            >
+              {showMobileMenu ? '✕' : '☰'}
+            </button>
           )}
 
           {/* Logo */}

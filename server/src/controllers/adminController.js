@@ -59,6 +59,7 @@ const getAllCampaigns = async (req, res) => {
 };
 
 //PUT /api/admin/campaigns/:id/approve
+// 1. KETIKA KAMPANYE DISETUJUI (APPROVED)
 const approveCampaign = async (req, res) => {
   const { id } = req.params;
   try {
@@ -67,33 +68,45 @@ const approveCampaign = async (req, res) => {
        WHERE id = $1 AND status = 'pending' RETURNING *`,
       [id],
     );
-    if (result.rows.length === 0) return res.status(404).json({ message: 'Kampanye tidak ditemukan atau bukan pending' });
 
-    //kirim notifikasi ke pemilik UMKM
-    await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [result.rows[0].owner_id, `Kampanye "${result.rows[0].title}" telah disetujui dan sekarang aktif!`]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Kampanye tidak ditemukan atau bukan pending' });
+    }
 
-    res.json({ message: 'Kampanye berhasil disetujui', campaign: result.rows[0] });
+    const ownerId = result.rows[0].owner_id;
+    const msg = `Selamat! Kampanye Anda "${result.rows[0].title}" telah disetujui oleh admin.`;
+
+    // Simpan notifikasi ke database
+    await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [ownerId, msg]);
+
+    res.json({ message: 'Kampanye berhasil disetujui' });
   } catch (err) {
     console.error('Approve error:', err.message);
     res.status(500).json({ message: 'Terjadi kesalahan server' });
   }
 };
 
-//PUT /api/admin/campaigns/:id/reject
+// 2. KETIKA KAMPANYE DITOLAK (REJECTED)
 const rejectCampaign = async (req, res) => {
   const { id } = req.params;
-  const { reason } = req.body;
   try {
     const result = await pool.query(
       `UPDATE campaigns SET status = 'rejected'
        WHERE id = $1 AND status = 'pending' RETURNING *`,
       [id],
     );
-    if (result.rows.length === 0) return res.status(404).json({ message: 'Kampanye tidak ditemukan atau bukan pending' });
 
-    await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [result.rows[0].owner_id, `Kampanye "${result.rows[0].title}" ditolak.${reason ? ` Alasan: ${reason}` : ''}`]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Kampanye tidak ditemukan atau bukan pending' });
+    }
 
-    res.json({ message: 'Kampanye ditolak' });
+    const ownerId = result.rows[0].owner_id;
+    const msg = `Maaf, kampanye Anda "${result.rows[0].title}" ditolak oleh admin.`;
+
+    // Simpan notifikasi ke database dengan parameter yang lengkap ($1 dan $2)
+    await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [ownerId, msg]);
+
+    res.json({ message: 'Kampanye berhasil ditolak' });
   } catch (err) {
     console.error('Reject error:', err.message);
     res.status(500).json({ message: 'Terjadi kesalahan server' });
