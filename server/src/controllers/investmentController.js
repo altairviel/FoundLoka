@@ -4,10 +4,7 @@ const pool = require('../config/db');
 // ── Helper: insert notifikasi ──
 const notify = async (userId, message) => {
   try {
-    await pool.query(
-      'INSERT INTO notifications (user_id, message) VALUES ($1, $2)',
-      [userId, message],
-    );
+    await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [userId, message]);
   } catch (err) {
     // Notifikasi gagal tidak boleh gagalkan transaksi utama
     console.error('Notify error:', err.message);
@@ -15,14 +12,13 @@ const notify = async (userId, message) => {
 };
 
 // ── Helper: format Rupiah ──
-const rupiah = (n) =>
-  new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
+const rupiah = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
 
 // ── Helper: generate jadwal cicilan saat kampanye fully funded ──
 const generateInstallments = async (campaign_id, campaign) => {
-  const totalReturn   = parseFloat(campaign.target_amount) * (1 + parseFloat(campaign.return_rate) / 100);
+  const totalReturn = parseFloat(campaign.target_amount) * (1 + parseFloat(campaign.return_rate) / 100);
   const monthlyAmount = Math.round(totalReturn / parseInt(campaign.tenor_months));
-  const today         = new Date();
+  const today = new Date();
 
   for (let month = 1; month <= parseInt(campaign.tenor_months); month++) {
     const dueDate = new Date(today);
@@ -50,10 +46,7 @@ const createInvestment = async (req, res) => {
 
   try {
     // Ambil data kampanye
-    const campaignResult = await pool.query(
-      'SELECT c.*, u.name AS owner_name FROM campaigns c JOIN users u ON c.owner_id = u.id WHERE c.id = $1 AND c.status = $2',
-      [campaign_id, 'active'],
-    );
+    const campaignResult = await pool.query('SELECT c.*, u.name AS owner_name FROM campaigns c JOIN users u ON c.owner_id = u.id WHERE c.id = $1 AND c.status = $2', [campaign_id, 'active']);
     if (campaignResult.rows.length === 0) {
       return res.status(404).json({ message: 'Kampanye tidak ditemukan atau tidak aktif' });
     }
@@ -73,7 +66,7 @@ const createInvestment = async (req, res) => {
 
     // Ambil nama investor
     const investorResult = await pool.query('SELECT name FROM users WHERE id = $1', [investor_id]);
-    const investorName   = investorResult.rows[0]?.name || 'Seorang investor';
+    const investorName = investorResult.rows[0]?.name || 'Seorang investor';
 
     // Simpan investasi
     const investment = await pool.query(
@@ -83,50 +76,28 @@ const createInvestment = async (req, res) => {
     );
 
     // Update collected_amount kampanye
-    const newCollected  = parseFloat(campaign.collected_amount) + parseFloat(amount);
+    const newCollected = parseFloat(campaign.collected_amount) + parseFloat(amount);
     const isFullyFunded = newCollected >= parseFloat(campaign.target_amount);
-    const newStatus     = isFullyFunded ? 'funded' : 'active';
+    const newStatus = isFullyFunded ? 'funded' : 'active';
 
-    await pool.query(
-      'UPDATE campaigns SET collected_amount = $1, status = $2 WHERE id = $3',
-      [newCollected, newStatus, campaign_id],
-    );
+    await pool.query('UPDATE campaigns SET collected_amount = $1, status = $2 WHERE id = $3', [newCollected, newStatus, campaign_id]);
 
     // ── NOTIFIKASI 1: ke INVESTOR — konfirmasi investasi berhasil ──
-    await notify(
-      investor_id,
-      `✅ Investasi kamu sebesar ${rupiah(amount)} ke kampanye "${campaign.title}" berhasil! ` +
-      `Return ${campaign.return_rate}% akan dikirim sesuai jadwal.`,
-    );
+    await notify(investor_id, `✅ Investasi kamu sebesar ${rupiah(amount)} ke kampanye "${campaign.title}" berhasil! ` + `Return ${campaign.return_rate}% akan dikirim sesuai jadwal.`);
 
     // ── NOTIFIKASI 2: ke OWNER — ada investor baru masuk ──
-    await notify(
-      campaign.owner_id,
-      `💰 ${investorName} baru saja menginvestasikan ${rupiah(amount)} ke kampanye "${campaign.title}". ` +
-      `Total terkumpul: ${rupiah(newCollected)} dari target ${rupiah(campaign.target_amount)}.`,
-    );
+    await notify(campaign.owner_id, `💰 ${investorName} baru saja menginvestasikan ${rupiah(amount)} ke kampanye "${campaign.title}". ` + `Total terkumpul: ${rupiah(newCollected)} dari target ${rupiah(campaign.target_amount)}.`);
 
     // ── NOTIFIKASI 3: ke OWNER — kampanye fully funded ──
     if (isFullyFunded) {
       await generateInstallments(campaign_id, campaign);
 
-      await notify(
-        campaign.owner_id,
-        `🎉 Selamat! Kampanye "${campaign.title}" telah mencapai target pendanaan ${rupiah(campaign.target_amount)}! ` +
-        `Dana sedang diproses untuk pencairan. Pantau jadwal cicilan di dashboard kamu.`,
-      );
+      await notify(campaign.owner_id, `🎉 Selamat! Kampanye "${campaign.title}" telah mencapai target pendanaan ${rupiah(campaign.target_amount)}! ` + `Dana sedang diproses untuk pencairan. Pantau jadwal cicilan di dashboard kamu.`);
 
       // ── NOTIFIKASI 4: ke semua INVESTOR kampanye — kampanye fully funded ──
-      const allInvestors = await pool.query(
-        'SELECT DISTINCT investor_id FROM investments WHERE campaign_id = $1',
-        [campaign_id],
-      );
+      const allInvestors = await pool.query('SELECT DISTINCT investor_id FROM investments WHERE campaign_id = $1', [campaign_id]);
       for (const row of allInvestors.rows) {
-        await notify(
-          row.investor_id,
-          `🎉 Kampanye "${campaign.title}" yang kamu danai telah mencapai target! ` +
-          `Return investasi akan mulai berjalan sesuai jadwal cicilan.`,
-        );
+        await notify(row.investor_id, `🎉 Kampanye "${campaign.title}" yang kamu danai telah mencapai target! ` + `Return investasi akan mulai berjalan sesuai jadwal cicilan.`);
       }
     }
 
@@ -159,7 +130,16 @@ const getMyInvestments = async (req, res) => {
         COALESCE((
           SELECT COUNT(*) FROM installments
           WHERE campaign_id = c.id AND status = 'paid'
-        ), 0)::int AS installments_paid
+        ), 0)::int AS installments_paid,
+        
+        -- 👇 KUNCI PERBAIKAN: Hitung profit yang sudah diterima berdasarkan cicilan yang 'paid'
+        ROUND(
+          (inv.amount * (c.return_rate / 100) / c.tenor_months) * COALESCE((
+            SELECT COUNT(*) FROM installments
+            WHERE campaign_id = c.id AND status = 'paid'
+          ), 0), 0
+        )::numeric AS return_received
+
       FROM investments inv
       JOIN campaigns c ON inv.campaign_id = c.id
       JOIN users    u ON c.owner_id       = u.id
@@ -173,7 +153,6 @@ const getMyInvestments = async (req, res) => {
     res.status(500).json({ message: 'Terjadi kesalahan server' });
   }
 };
-
 // ── GET /api/investments/campaign/:id ──
 const getCampaignInvestors = async (req, res) => {
   const { id } = req.params;

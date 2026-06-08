@@ -156,6 +156,12 @@ const disburseCampaign = async (req, res) => {
     const returnRate = parseFloat(campaign.return_rate);
     const tenorMonths = parseInt(campaign.tenor_months);
 
+    console.log('=====================================');
+    console.log('NILAI TENOR DARI DB :', campaign.tenor_months);
+    console.log('HASIL PARSEINT      :', tenorMonths);
+    console.log('TIPE DATA TENOR     :', typeof campaign.tenor_months);
+    console.log('=====================================');
+
     // Rumus hitung total pengembalian (Pokok + Bunga Flat)
     const totalReturn = targetAmount * (1 + returnRate / 100);
     const installmentAmount = Math.round(totalReturn / tenorMonths); // Pembulatan nominal per bulan
