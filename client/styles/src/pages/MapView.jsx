@@ -168,8 +168,7 @@ export default function MapView() {
                     {/* 7. Ubah setPage menjadi navigate('/campaign-detail') */}
                     <button
                       onClick={() => {
-                        localStorage.setItem('selectedCampaignId', loc.id);
-                        navigate('/campaign-detail');
+                        navigate(`/campaign-detail/${loc.id}`);
                       }}
                       style={{
                         width: '100%',

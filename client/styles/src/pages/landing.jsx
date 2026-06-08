@@ -1,11 +1,11 @@
 import { T } from '../../tokens';
-import CampaignCard from '../components/CampaignCard'; 
+import CampaignCard from '../components/CampaignCard';
 import { useState, useEffect } from 'react';
 import { getCampaigns } from '../services/campaign';
 import { useNavigate } from 'react-router-dom'; // 👈 1. Import useNavigate
 
 // ✅ SESUAI STRUKTUR: Mundur ke src, lalu masuk assets
-import folkFundLogo from '../assets/Folk Fund.png'; 
+import folkFundLogo from '../assets/Folk Fund.png';
 import bannerImg from '../assets/banner.png';
 
 const STATS = [
@@ -39,7 +39,8 @@ function normalizeCampaign(c) {
   };
 }
 
-export default function Landing({ role }) { // 👈 2. Hapus setPage dari props
+export default function Landing({ role }) {
+  // 👈 2. Hapus setPage dari props
   const navigate = useNavigate(); // 👈 3. Inisialisasi hook navigate
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +60,6 @@ export default function Landing({ role }) { // 👈 2. Hapus setPage dari props
       {/* HERO */}
       <section style={{ background: T.white, borderBottom: T.border, padding: '5rem 0 4rem' }}>
         <div className="ff-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '2rem' }}>
-          
           {/* Sisi Kiri: Teks */}
           <div style={{ flex: '1 1 500px', maxWidth: 620 }}>
             <div className="ff-badge ff-badge-green" style={{ marginBottom: '1.25rem' }}>
@@ -73,7 +73,7 @@ export default function Landing({ role }) { // 👈 2. Hapus setPage dari props
             <p style={{ fontSize: '1.1rem', color: T.gray500, lineHeight: 1.7, marginBottom: '2rem', maxWidth: 480 }}>
               Investasikan dana kamu ke ratusan UMKM terpilih di seluruh Indonesia. Mulai dari Rp 100.000, dapatkan return hingga 18% per tahun.
             </p>
-            
+
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               {role === 'investor' ? (
                 <>
@@ -99,13 +99,8 @@ export default function Landing({ role }) { // 👈 2. Hapus setPage dari props
 
           {/* Sisi Kanan: Gambar Banner */}
           <div style={{ flex: '1 1 350px', display: 'flex', justifyContent: 'center' }}>
-            <img 
-              src={bannerImg} 
-              alt="FolkFund Banner" 
-              style={{ width: '100%', maxWidth: '480px', height: 'auto', objectFit: 'contain' }} 
-            />
+            <img src={bannerImg} alt="FolkFund Banner" style={{ width: '100%', maxWidth: '480px', height: 'auto', objectFit: 'contain' }} />
           </div>
-
         </div>
       </section>
 
@@ -148,9 +143,7 @@ export default function Landing({ role }) { // 👈 2. Hapus setPage dari props
                   key={c.id}
                   campaign={c}
                   onClick={() => {
-                    localStorage.setItem('selectedCampaignId', c.id);
-                    // 🚀 FIX: Navigasi dinamis langsung ke ID detail campaign sesuai rute App.jsx
-                    navigate(`/campaign-detail/${c.id}`); 
+                    navigate(`/campaign-detail/${c.id}`);
                   }}
                 />
               ))}

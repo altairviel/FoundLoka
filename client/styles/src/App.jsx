@@ -35,7 +35,7 @@ export default function App() {
     localStorage.removeItem('user');
     setUser(null);
     setRole(null);
-    navigate('/'); 
+    navigate('/');
   };
 
   // Jika belum login / tidak ada role, kunci layar di halaman Auth
@@ -68,7 +68,7 @@ export default function App() {
 
         {/* Halaman Detail */}
         <Route path="/campaign-detail/:id" element={<CampaignDetail role={role} />} />
-        
+
         {/* 🔒 Proteksi Rute Khusus Owner UMKM */}
         <Route path="/umkm" element={role === 'owner' ? <UMKMDashboard user={user} /> : <Navigate to="/" />} />
         <Route path="/create-campaign" element={role === 'owner' ? <CreateCampaign user={user} onSuccess={() => navigate('/umkm')} onCancel={() => navigate('/umkm')} /> : <Navigate to="/" />} />
@@ -84,7 +84,7 @@ export default function App() {
         <Route path="/profile" element={<Profile user={user} setUser={setUser} role={role} />} />
 
         {/* Catch-all jika URL tidak ditemukan, balikkan ke luar */}
-        <Route path="*" element={<Navigate to={role === 'admin' ? "/admin" : role === 'owner' ? "/umkm" : "/investor"} />} />
+        <Route path="*" element={<Navigate to={role === 'admin' ? '/admin' : role === 'owner' ? '/umkm' : '/investor'} />} />
       </Routes>
     </div>
   );

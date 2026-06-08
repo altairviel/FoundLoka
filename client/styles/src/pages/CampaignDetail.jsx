@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { T } from '../../tokens';
 import ProgressBar from '../components/ProgressBar';
 import PaymentButton from '../components/PaymentButton'; // 💳 Komponen tombol pembayaran Midtrans ganda
@@ -47,6 +47,8 @@ function StarPicker({ value, onChange }) {
 
 export default function CampaignDetail({ role }) {
   const navigate = useNavigate();
+  const { id } = useParams();
+  console.log('ID yang ditangkap dari URL:', id);
   const isMobile = useIsMobile();
 
   const [campaign, setCampaign] = useState(null);
@@ -67,7 +69,6 @@ export default function CampaignDetail({ role }) {
 
   // Fungsi penarik data dari database backend lokal
   const fetchDetail = useCallback(async () => {
-    const id = localStorage.getItem('selectedCampaignId');
     if (!id) {
       navigate('/campaign');
       return;
@@ -91,7 +92,7 @@ export default function CampaignDetail({ role }) {
     } finally {
       setLoading(false);
     }
-  }, [navigate]);
+  }, [id, navigate]);
 
   useEffect(() => {
     setLoading(true);

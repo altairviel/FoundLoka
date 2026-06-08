@@ -17,7 +17,7 @@ export default function CampaignCard({ campaign }) {
   // 👈 4. Fungsi helper untuk navigasi ke detail kampanye
   const handleNavigateToDetail = () => {
     localStorage.setItem('selectedCampaignId', c.id); // Simpan ID kampanye ke local storage
-    navigate('/campaign-detail'); // Arahkan ke rute detail
+    navigate(`/campaign-detail/${c.id}`); // Arahkan ke rute detail
   };
 
   return (
