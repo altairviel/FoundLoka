@@ -1,8 +1,8 @@
-// client/styles/src/pages/CampaignDetail.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { T } from '../../tokens';
 import ProgressBar from '../components/ProgressBar';
+import PaymentButton from '../components/PaymentButton'; // 💳 Komponen tombol pembayaran Midtrans ganda
 import { getCampaignById } from '../services/campaign';
 import api from '../services/api';
 import { fmt, pct } from '../utils/format';
@@ -10,8 +10,10 @@ import { fmt, pct } from '../utils/format';
 function Stars({ rating }) {
   return (
     <span>
-      {[1,2,3,4,5].map((s) => (
-        <span key={s} style={{ color: s <= rating ? '#F59E0B' : T.gray200, fontSize: 14 }}>★</span>
+      {[1, 2, 3, 4, 5].map((s) => (
+        <span key={s} style={{ color: s <= rating ? '#F59E0B' : T.gray200, fontSize: 14 }}>
+          ★
+        </span>
       ))}
     </span>
   );
@@ -34,14 +36,8 @@ function StarPicker({ value, onChange }) {
   const [hovered, setHovered] = useState(0);
   return (
     <div style={{ display: 'flex', gap: 4 }}>
-      {[1,2,3,4,5].map((s) => (
-        <span
-          key={s}
-          onClick={() => onChange(s)}
-          onMouseEnter={() => setHovered(s)}
-          onMouseLeave={() => setHovered(0)}
-          style={{ cursor: 'pointer', fontSize: 24, color: s <= (hovered || value) ? '#F59E0B' : T.gray200 }}
-        >
+      {[1, 2, 3, 4, 5].map((s) => (
+        <span key={s} onClick={() => onChange(s)} onMouseEnter={() => setHovered(s)} onMouseLeave={() => setHovered(0)} style={{ cursor: 'pointer', fontSize: 24, color: s <= (hovered || value) ? '#F59E0B' : T.gray200 }}>
           ★
         </span>
       ))}
@@ -51,122 +47,58 @@ function StarPicker({ value, onChange }) {
 
 export default function CampaignDetail({ role }) {
   const navigate = useNavigate();
-  const isMobile = useIsMobile(); // 📱 Deteksi status layar mobile
+  const isMobile = useIsMobile();
 
-  const [campaign, setCampaign]           = useState(null);
-  const [investors, setInvestors]         = useState([]);
-  const [installments, setInstallments]   = useState([]);
-  const [reviews, setReviews]             = useState([]);
-  const [avgRating, setAvgRating]         = useState(null);
-  const [loading, setLoading]             = useState(true);
-  const [error, setError]                 = useState('');
+  const [campaign, setCampaign] = useState(null);
+  const [investors, setInvestors] = useState([]);
+  const [installments, setInstallments] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [avgRating, setAvgRating] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const [amount, setAmount]               = useState(500000);
-  const [invLoading, setInvLoading]       = useState(false);
-  const [invMsg, setInvMsg]               = useState('');
+  const [amount, setAmount] = useState(500000);
 
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [reviewRating, setReviewRating]     = useState(0);
-  const [reviewComment, setReviewComment]   = useState('');
-  const [reviewLoading, setReviewLoading]   = useState(false);
-  const [reviewMsg, setReviewMsg]           = useState('');
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewMsg, setReviewMsg] = useState('');
 
-  useEffect(() => {
+  // Fungsi penarik data dari database backend lokal
+  const fetchDetail = useCallback(async () => {
     const id = localStorage.getItem('selectedCampaignId');
     if (!id) {
       navigate('/campaign');
       return;
     }
-    const fetchDetail = async () => {
-      setLoading(true);
-      try {
-        const res = await getCampaignById(id);
-        const d   = res.data;
-        setCampaign(d.campaign || d);
-        setInvestors(Array.isArray(d.investors)     ? d.investors     : []);
-        setInstallments(Array.isArray(d.installments) ? d.installments : []);
-
-        try {
-          const revRes = await api.get(`/reviews/campaign/${id}`);
-          setReviews(Array.isArray(revRes.data?.reviews) ? revRes.data.reviews : []);
-          setAvgRating(revRes.data?.average_rating || null);
-        } catch {
-          // review opsional
-        }
-      } catch (err) {
-        setError('Gagal memuat detail kampanye. Periksa koneksi Anda.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDetail();
-  }, [navigate]);
-
-  const handleBack = () => navigate('/campaign');
-
-  // ── Loading skeleton (Responsif Mobile) ──
-  if (loading) return (
-    <div style={{ background: T.gray50, minHeight: 'calc(100vh - 56px)', padding: isMobile ? '1rem' : '2rem 0' }}>
-      <div className="ff-container">
-        <div style={{ height: 14, width: 120, background: T.gray200, borderRadius: 6, marginBottom: '1.5rem' }} />
-        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '2rem' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
-            {[200, 140, 120].map((h, i) => (
-              <div key={i} style={{ height: h, background: T.gray100, borderRadius: 10 }} />
-            ))}
-          </div>
-          <div style={{ height: 350, width: isMobile ? '100%' : '360px', background: T.gray100, borderRadius: 10 }} />
-        </div>
-      </div>
-    </div>
-  );
-
-  if (error && !campaign) return (
-    <div style={{ background: T.gray50, minHeight: 'calc(100vh - 56px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div style={{ textAlign: 'center', padding: '2rem' }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
-        <div style={{ fontWeight: 600, marginBottom: 8 }}>{error}</div>
-        <button className="ff-btn" onClick={handleBack}>← Kembali ke Kampanye</button>
-      </div>
-    </div>
-  );
-
-  const c = campaign;
-  if (!c) return null;
-
-  const raised     = parseFloat(c.collected_amount ?? c.raised   ?? 0);
-  const target     = parseFloat(c.target_amount    ?? c.target   ?? 1);
-  const progress   = pct(raised, target);
-  const returnRate = c.return_rate ?? c.return     ?? '—';
-  const tenor      = c.tenor_months ?? c.tenor     ?? '—';
-  const monthly    = tenor && returnRate && target
-    ? Math.round((target * (1 + parseFloat(returnRate) / 100)) / parseInt(tenor))
-    : null;
-
-  const handleInvest = async () => {
-    if (!amount || amount < 100000) return setInvMsg('⚠️ Minimum investasi Rp 100.000');
-    setInvLoading(true);
-    setInvMsg('');
     try {
-      const res   = await api.post('/payments/invest', { campaign_id: c.id, amount });
-      const token = res.data?.snap_token;
-      if (token && window.snap) {
-        window.snap.pay(token, {
-          onSuccess: () => setInvMsg('✅ Pembayaran berhasil! Investasi kamu sudah tercatat.'),
-          onPending: () => setInvMsg('⏳ Pembayaran pending. Selesaikan pembayaran kamu.'),
-          onError:   () => setInvMsg('⚠️ Pembayaran gagal. Silakan coba lagi.'),
-          onClose:   () => {},
-        });
-      } else {
-        await api.post('/investments', { campaign_id: c.id, amount });
-        setInvMsg('✅ Investasi berhasil! Dana sedang diproses.');
+      const res = await getCampaignById(id);
+      const d = res.data;
+      setCampaign(d.campaign || d);
+      setInvestors(Array.isArray(d.investors) ? d.investors : []);
+      setInstallments(Array.isArray(d.installments) ? d.installments : []);
+
+      try {
+        const revRes = await api.get(`/reviews/campaign/${id}`);
+        setReviews(Array.isArray(revRes.data?.reviews) ? revRes.data.reviews : []);
+        setAvgRating(revRes.data?.average_rating || null);
+      } catch {
+        // review opsional jika belum ada data
       }
     } catch (err) {
-      setInvMsg(`⚠️ ${err.response?.data?.message || 'Investasi gagal. Coba lagi.'}`);
+      setError('Gagal memuat detail kampanye. Periksa koneksi Anda.');
     } finally {
-      setInvLoading(false);
+      setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchDetail();
+  }, [fetchDetail]);
+
+  const handleBack = () => navigate('/campaign');
 
   const handleReview = async (e) => {
     e.preventDefault();
@@ -174,10 +106,10 @@ export default function CampaignDetail({ role }) {
     setReviewLoading(true);
     setReviewMsg('');
     try {
-      await api.post('/reviews', { campaign_id: c.id, rating: reviewRating, comment: reviewComment });
+      await api.post('/reviews', { campaign_id: campaign.id, rating: reviewRating, comment: reviewComment });
       setReviewMsg('✅ Review berhasil dikirim!');
       setShowReviewForm(false);
-      const revRes = await api.get(`/reviews/campaign/${c.id}`);
+      const revRes = await api.get(`/reviews/campaign/${campaign.id}`);
       setReviews(Array.isArray(revRes.data?.reviews) ? revRes.data.reviews : []);
       setAvgRating(revRes.data?.average_rating || null);
     } catch (err) {
@@ -187,31 +119,59 @@ export default function CampaignDetail({ role }) {
     }
   };
 
+  // ── Loading skeleton (Responsif Mobile) ──
+  if (loading)
+    return (
+      <div style={{ background: T.gray50, minHeight: 'calc(100vh - 56px)', padding: isMobile ? '1rem' : '2rem 0' }}>
+        <div className="ff-container">
+          <div style={{ height: 14, width: 120, background: T.gray200, borderRadius: 6, marginBottom: '1.5rem' }} />
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '2rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
+              {[200, 140, 120].map((h, i) => (
+                <div key={i} style={{ height: h, background: T.gray100, borderRadius: 10 }} />
+              ))}
+            </div>
+            <div style={{ height: 350, width: isMobile ? '100%' : '360px', background: T.gray100, borderRadius: 10 }} />
+          </div>
+        </div>
+      </div>
+    );
+
+  if (error && !campaign)
+    return (
+      <div style={{ background: T.gray50, minHeight: 'calc(100vh - 56px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>{error}</div>
+          <button className="ff-btn" onClick={handleBack}>
+            ← Kembali ke Kampanye
+          </button>
+        </div>
+      </div>
+    );
+
+  const c = campaign;
+  if (!c) return null;
+
+  const raised = parseFloat(c.collected_amount ?? c.raised ?? 0);
+  const target = parseFloat(c.target_amount ?? c.target ?? 1);
+  const progress = pct(raised, target);
+  const returnRate = c.return_rate ?? c.return ?? '—';
+  const tenor = c.tenor_months ?? c.tenor ?? '—';
+  const monthly = tenor && returnRate && target ? Math.round((target * (1 + parseFloat(returnRate) / 100)) / parseInt(tenor)) : null;
+
   return (
     <div style={{ background: T.gray50, minHeight: 'calc(100vh - 56px)' }}>
       <div className="ff-container" style={{ paddingTop: isMobile ? '1rem' : '2rem', paddingBottom: '4rem', paddingLeft: isMobile ? '1rem' : undefined, paddingRight: isMobile ? '1rem' : undefined }}>
-
         <button className="ff-btn ff-btn-sm" onClick={handleBack} style={{ marginBottom: '1.5rem' }}>
           ← Kembali ke Kampanye
         </button>
 
-        {error && (
-          <div style={{ background: '#FEE2E2', color: '#B91C1C', fontSize: 13, padding: '10px 12px', borderRadius: 8, marginBottom: '1rem' }}>
-            ⚠️ {error}
-          </div>
-        )}
+        {error && <div style={{ background: '#FEE2E2', color: '#B91C1C', fontSize: 13, padding: '10px 12px', borderRadius: 8, marginBottom: '1rem' }}>⚠️ {error}</div>}
 
-        {/* 📱 Responsif Grid Layout: Kolom tunggal di mobile, dua kolom di desktop */}
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: isMobile ? 'column' : 'row', 
-          gap: '2rem', 
-          alignItems: 'start' 
-        }}>
-
-          {/* ── KIRI / UTAMA (Akan naik ke atas di mobile) ── */}
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '2rem', alignItems: 'start' }}>
+          {/* ── KIRI / UTAMA ── */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1, width: '100%' }}>
-
             {/* Info utama */}
             <div className="ff-card" style={{ padding: isMobile ? '1.25rem' : undefined }}>
               <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 16, alignItems: isMobile ? 'center' : 'flex-start', textAlign: isMobile ? 'center' : 'left' }}>
@@ -232,9 +192,7 @@ export default function CampaignDetail({ role }) {
                   <p style={{ fontSize: 13, color: T.gray500 }}>📍 {c.address || c.location || '—'}</p>
                 </div>
               </div>
-              <p style={{ fontSize: 14, lineHeight: 1.75, color: T.gray700, marginTop: '1.25rem', textAlign: 'justify' }}>
-                {c.description || c.desc || 'Tidak ada deskripsi.'}
-              </p>
+              <p style={{ fontSize: 14, lineHeight: 1.75, color: T.gray700, marginTop: '1.25rem', textAlign: 'justify' }}>{c.description || c.desc || 'Tidak ada deskripsi.'}</p>
             </div>
 
             {/* Profil pemilik */}
@@ -246,9 +204,7 @@ export default function CampaignDetail({ role }) {
                 </div>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 15 }}>{c.owner_name || 'Pemilik Usaha'}</div>
-                  <div style={{ fontSize: 13, color: T.gray500 }}>
-                    {c.owner_phone ? `📞 ${c.owner_phone}` : 'Pemilik usaha'}
-                  </div>
+                  <div style={{ fontSize: 13, color: T.gray500 }}>{c.owner_phone ? `📞 ${c.owner_phone}` : 'Pemilik usaha'}</div>
                 </div>
               </div>
             </div>
@@ -259,15 +215,19 @@ export default function CampaignDetail({ role }) {
                 <h3 style={{ fontWeight: 600, marginBottom: '1rem' }}>Investor ({investors.length})</h3>
                 <div style={{ overflowX: 'auto', margin: isMobile ? '0 -1.25rem' : undefined, padding: isMobile ? '0 1.25rem' : undefined }}>
                   <table className="ff-table" style={{ minWidth: isMobile ? '400px' : '100%' }}>
-                    <thead><tr><th>Nama</th><th>Jumlah</th><th>Tanggal</th></tr></thead>
+                    <thead>
+                      <tr>
+                        <th>Nama</th>
+                        <th>Jumlah</th>
+                        <th>Tanggal</th>
+                      </tr>
+                    </thead>
                     <tbody>
                       {investors.map((inv, i) => (
                         <tr key={i}>
                           <td style={{ fontWeight: 500 }}>{inv.name}</td>
                           <td style={{ color: T.green, fontWeight: 600 }}>{fmt(inv.amount)}</td>
-                          <td style={{ fontSize: 13, color: T.gray500 }}>
-                            {inv.created_at ? new Date(inv.created_at).toLocaleDateString('id-ID') : '—'}
-                          </td>
+                          <td style={{ fontSize: 13, color: T.gray500 }}>{inv.created_at ? new Date(inv.created_at).toLocaleDateString('id-ID') : '—'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -282,19 +242,35 @@ export default function CampaignDetail({ role }) {
                 <h3 style={{ fontWeight: 600, marginBottom: '1rem' }}>Jadwal Cicilan</h3>
                 <div style={{ overflowX: 'auto', margin: isMobile ? '0 -1.25rem' : undefined, padding: isMobile ? '0 1.25rem' : undefined }}>
                   <table className="ff-table" style={{ minWidth: isMobile ? '500px' : '100%' }}>
-                    <thead><tr><th>Bulan</th><th>Jatuh Tempo</th><th>Jumlah</th><th>Status</th></tr></thead>
+                    <thead>
+                      <tr>
+                        <th>Bulan</th>
+                        <th>Jatuh Tempo</th>
+                        <th>Jumlah</th>
+                        <th>Status / Aksi</th>
+                      </tr>
+                    </thead>
                     <tbody>
                       {installments.map((inst, i) => (
                         <tr key={i}>
                           <td style={{ fontWeight: 500 }}>Bulan {inst.month_number}</td>
-                          <td style={{ fontSize: 13, color: T.gray500 }}>
-                            {inst.due_date ? new Date(inst.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
-                          </td>
+                          <td style={{ fontSize: 13, color: T.gray500 }}>{inst.due_date ? new Date(inst.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</td>
                           <td style={{ fontWeight: 600 }}>{fmt(inst.amount)}</td>
                           <td>
-                            <span className={`ff-badge ${inst.status === 'paid' ? 'ff-badge-green' : 'ff-badge-gray'}`}>
-                              {inst.status === 'paid' ? 'Lunas' : 'Belum'}
-                            </span>
+                            {/* 💡 SINKRONISASI TOMBOL PEMBAYARAN CICILAN KHUSUS OWNER */}
+                            {inst.status === 'paid' ? (
+                              <span className="ff-badge ff-badge-green">Lunas</span>
+                            ) : role === 'owner' || role === 'umkm' ? (
+                              <PaymentButton
+                                type="installment"
+                                installmentId={inst.id || inst.installment_id}
+                                label="💳 Bayar Cicilan"
+                                style={{ padding: '6px 12px', fontSize: 12, borderRadius: 6 }}
+                                onSuccess={() => fetchDetail()} // Ambil data baru setelah cicilan sukses dibayar
+                              />
+                            ) : (
+                              <span className="ff-badge ff-badge-gray">Belum</span>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -312,12 +288,16 @@ export default function CampaignDetail({ role }) {
                   {avgRating && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                       <Stars rating={Math.round(avgRating)} />
-                      <span style={{ fontSize: 13, color: T.gray500 }}>{avgRating} / 5 ({reviews.length} review)</span>
+                      <span style={{ fontSize: 13, color: T.gray500 }}>
+                        {avgRating} / 5 ({reviews.length} review)
+                      </span>
                     </div>
                   )}
                 </div>
                 {role === 'investor' && !showReviewForm && (
-                  <button className="ff-btn ff-btn-sm" style={{ width: isMobile ? '100%' : 'auto' }} onClick={() => setShowReviewForm(true)}>+ Tulis Review</button>
+                  <button className="ff-btn ff-btn-sm" style={{ width: isMobile ? '100%' : 'auto' }} onClick={() => setShowReviewForm(true)}>
+                    + Tulis Review
+                  </button>
                 )}
               </div>
 
@@ -337,17 +317,12 @@ export default function CampaignDetail({ role }) {
                       style={{ width: '100%', padding: '8px 12px', fontSize: 14, border: `1px solid ${T.gray200}`, borderRadius: 6, outline: 'none', resize: 'vertical', boxSizing: 'border-box' }}
                     />
                   </div>
-                  {reviewMsg && (
-                    <div style={{ fontSize: 13, marginBottom: '0.75rem', color: reviewMsg.startsWith('✅') ? '#065F46' : '#B91C1C' }}>
-                      {reviewMsg}
-                    </div>
-                  )}
+                  {reviewMsg && <div style={{ fontSize: 13, marginBottom: '0.75rem', color: reviewMsg.startsWith('✅') ? '#065F46' : '#B91C1C' }}>{reviewMsg}</div>}
                   <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                    <button type="button" className="ff-btn ff-btn-sm" onClick={() => setShowReviewForm(false)}>Batal</button>
-                    <button type="submit" className="ff-btn ff-btn-sm"
-                      style={{ background: T.green, color: T.white, borderColor: T.green, opacity: reviewLoading ? 0.7 : 1 }}
-                      disabled={reviewLoading}
-                    >
+                    <button type="button" className="ff-btn ff-btn-sm" onClick={() => setShowReviewForm(false)}>
+                      Batal
+                    </button>
+                    <button type="submit" className="ff-btn ff-btn-sm" style={{ background: T.green, color: T.white, borderColor: T.green, opacity: reviewLoading ? 0.7 : 1 }} disabled={reviewLoading}>
                       {reviewLoading ? 'Mengirim...' : 'Kirim Review'}
                     </button>
                   </div>
@@ -364,16 +339,14 @@ export default function CampaignDetail({ role }) {
                       <Stars rating={r.rating} />
                     </div>
                     {r.comment && <p style={{ fontSize: 14, color: T.gray700, lineHeight: 1.6 }}>{r.comment}</p>}
-                    <div style={{ fontSize: 12, color: T.gray500, marginTop: 4 }}>
-                      {r.created_at ? new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
-                    </div>
+                    <div style={{ fontSize: 12, color: T.gray500, marginTop: 4 }}>{r.created_at ? new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</div>
                   </div>
                 ))
               )}
             </div>
           </div>
 
-          {/* ── KANAN / PANEL INVESTASI (Otomatis turun ke bawah di mobile) ── */}
+          {/* ── KANAN / PANEL INVESTASI ── */}
           <div style={{ width: '100%', maxWidth: isMobile ? '100%' : '360px' }}>
             <div className="ff-card" style={{ position: isMobile ? 'static' : 'sticky', top: 72 }}>
               <div style={{ marginBottom: '1rem' }}>
@@ -388,12 +361,12 @@ export default function CampaignDetail({ role }) {
               <div style={{ height: 1, background: T.gray200, margin: '1rem 0' }} />
 
               {[
-                ['Return',            `${returnRate}${typeof returnRate === 'number' ? '%' : ''}/tahun`],
-                ['Tenor',             `${tenor}${typeof tenor === 'number' ? ' bulan' : ''}`],
-                ['Est. cicilan/bln',  monthly ? fmt(monthly) : '—'],
-                ['Risiko',            c.risk || c.risk_level || '—'],
-                ['Investor',          `${c.investor_count ?? investors.length} orang`],
-                ['Deadline',          c.deadline ? new Date(c.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'],
+                ['Return', `${returnRate}${typeof returnRate === 'number' ? '%' : ''}/tahun`],
+                ['Tenor', `${tenor}${typeof tenor === 'number' ? ' bulan' : ''}`],
+                ['Est. cicilan/bln', monthly ? fmt(monthly) : '—'],
+                ['Risiko', c.risk || c.risk_level || '—'],
+                ['Investor', `${c.investor_count ?? investors.length} orang`],
+                ['Deadline', c.deadline ? new Date(c.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14 }}>
                   <span style={{ color: T.gray500 }}>{k}</span>
@@ -407,7 +380,10 @@ export default function CampaignDetail({ role }) {
                 <>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Jumlah investasi (Rp)</label>
                   <input
-                    type="number" value={amount} min={100000} step={50000}
+                    type="number"
+                    value={amount}
+                    min={100000}
+                    step={50000}
                     onChange={(e) => setAmount(Number(e.target.value))}
                     style={{ width: '100%', padding: '8px 12px', fontSize: 14, border: `1px solid ${T.gray200}`, borderRadius: 6, outline: 'none', boxSizing: 'border-box', marginBottom: '0.75rem' }}
                   />
@@ -415,49 +391,40 @@ export default function CampaignDetail({ role }) {
                     <div style={{ background: T.greenLight, border: `1px solid ${T.green}20`, borderRadius: 6, padding: '10px 12px', marginBottom: '0.75rem', fontSize: 13 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ color: T.gray700 }}>Estimasi total return</span>
-                        <span style={{ fontWeight: 700, color: T.green }}>
-                          {fmt(Math.round(amount * (1 + parseFloat(returnRate) / 100)))}
-                        </span>
+                        <span style={{ fontWeight: 700, color: T.green }}>{fmt(Math.round(amount * (1 + parseFloat(returnRate) / 100)))}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
                         <span style={{ color: T.gray500 }}>Return per bulan</span>
-                        <span style={{ color: T.green }}>
-                          {tenor ? fmt(Math.round(amount * (1 + parseFloat(returnRate) / 100) / parseInt(tenor))) : '—'}
-                        </span>
+                        <span style={{ color: T.green }}>{tenor ? fmt(Math.round((amount * (1 + parseFloat(returnRate) / 100)) / parseInt(tenor))) : '—'}</span>
                       </div>
                     </div>
                   )}
-                  {invMsg && (
-                    <div style={{
-                      fontSize: 13, padding: '8px 10px', borderRadius: 6, marginBottom: '0.75rem',
-                      background: invMsg.startsWith('✅') ? '#D1FAE5' : invMsg.startsWith('⏳') ? '#FEF3C7' : '#FEE2E2',
-                      color:      invMsg.startsWith('✅') ? '#065F46' : invMsg.startsWith('⏳') ? '#92400E' : '#B91C1C',
-                    }}>
-                      {invMsg}
-                    </div>
+
+                  {amount < 100000 ? (
+                    <p style={{ color: '#dc2626', fontSize: 13, marginBottom: 8, textAlign: 'center' }}>⚠️ Minimum investasi Rp 100.000</p>
+                  ) : (
+                    <PaymentButton
+                      type="investment"
+                      campaignId={c.id}
+                      amount={amount}
+                      label="💳 Investasi Sekarang"
+                      style={{ width: '100%', padding: '12px', fontSize: 15 }}
+                      onSuccess={() => {
+                        // Memicu penarikan ulang data agar chart progress ter-update instan setelah modal Midtrans ditutup
+                        fetchDetail();
+                      }}
+                    />
                   )}
-                  <button
-                    onClick={handleInvest} disabled={invLoading}
-                    style={{ width: '100%', padding: '12px', fontSize: 15, fontWeight: 600, background: T.green, color: T.white, border: 'none', borderRadius: 8, cursor: invLoading ? 'not-allowed' : 'pointer', opacity: invLoading ? 0.7 : 1 }}
-                  >
-                    {invLoading ? 'Memproses...' : '💳 Investasi Sekarang'}
-                  </button>
-                  <p style={{ fontSize: 11, color: T.gray500, textAlign: 'center', marginTop: 8 }}>
-                    Minimum Rp 100.000 · Pembayaran via Midtrans
-                  </p>
+
+                  <p style={{ fontSize: 11, color: T.gray500, textAlign: 'center', marginTop: 8 }}>Minimum Rp 100.000 · Pembayaran via Midtrans</p>
                 </>
               ) : role === 'investor' ? (
-                <div style={{ textAlign: 'center', padding: '1rem 0', fontSize: 14, color: T.gray500 }}>
-                  Kampanye ini sudah tidak menerima investasi.
-                </div>
+                <div style={{ textAlign: 'center', padding: '1rem 0', fontSize: 14, color: T.gray500 }}>Kampanye ini sudah tidak menerima investasi.</div>
               ) : (
-                <div style={{ textAlign: 'center', padding: '1rem 0', fontSize: 13, color: T.gray500 }}>
-                  Login sebagai investor untuk berinvestasi.
-                </div>
+                <div style={{ textAlign: 'center', padding: '1rem 0', fontSize: 13, color: T.gray500 }}>Login sebagai investor untuk berinvestasi.</div>
               )}
             </div>
           </div>
-
         </div>
       </div>
     </div>
