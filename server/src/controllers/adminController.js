@@ -114,22 +114,61 @@ const rejectCampaign = async (req, res) => {
 };
 
 //PUT /api/admin/campaigns/:id/disburse, admin akan mencairkan dana ke UMKM setelah kampanye fully funded
+// PUT /api/admin/campaigns/:id/disburse
 const disburseCampaign = async (req, res) => {
   const { id } = req.params;
+  const client = await pool.connect(); // Gunakan client pool khusus untuk transaksi
+
   try {
-    const result = await pool.query(
+    await client.query('BEGIN'); // Mulai transaksi database
+
+    // 1. Update status campaign dari funded ke repaying
+    const result = await client.query(
       `UPDATE campaigns SET status = 'repaying'
        WHERE id = $1 AND status = 'funded' RETURNING *`,
       [id],
     );
-    if (result.rows.length === 0) return res.status(404).json({ message: 'Kampanye tidak ditemukan atau belum funded' });
 
-    await pool.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [result.rows[0].owner_id, `Dana kampanye "${result.rows[0].title}" telah dicairkan. Mulai bayar cicilan sesuai jadwal.`]);
+    if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ message: 'Kampanye tidak ditemukan atau belum funded' });
+    }
 
-    res.json({ message: 'Dana berhasil dicairkan ke UMKM' });
+    const campaign = result.rows[0];
+
+    // 2. Ambil data untuk kalkulasi cicilan
+    const targetAmount = parseFloat(campaign.target_amount);
+    const returnRate = parseFloat(campaign.return_rate);
+    const tenorMonths = parseInt(campaign.tenor_months);
+
+    // Rumus hitung total pengembalian (Pokok + Bunga Flat)
+    const totalReturn = targetAmount * (1 + returnRate / 100);
+    const installmentAmount = Math.round(totalReturn / tenorMonths); // Pembulatan nominal per bulan
+
+    // 3. Looping Generator Cicilan sesuai jumlah tenor
+    for (let i = 1; i <= tenorMonths; i++) {
+      // Hitung jatuh tempo bertambah 1 bulan setiap iterasi
+      const dueDate = new Date();
+      dueDate.setMonth(dueDate.getMonth() + i);
+
+      await client.query(
+        `INSERT INTO installments (id, campaign_id, month_number, due_date, amount, status)
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, 'pending')`,
+        [id, i, dueDate, installmentAmount],
+      );
+    }
+
+    // 4. Buat notifikasi untuk pemilik UMKM
+    await client.query('INSERT INTO notifications (user_id, message) VALUES ($1, $2)', [campaign.owner_id, `Dana kampanye "${campaign.title}" telah dicairkan. Mulai bayar cicilan sesuai jadwal.`]);
+
+    await client.query('COMMIT'); // Simpan permanen semua perubahan ke database jika sukses
+    res.json({ message: 'Dana berhasil dicairkan ke UMKM dan seluruh jadwal cicilan telah dibuat' });
   } catch (err) {
+    await client.query('ROLLBACK'); // Batalkan semua perintah di atas jika di tengah jalan ada error
     console.error('Disburse error:', err.message);
-    res.status(500).json({ message: 'Terjadi kesalahan server' });
+    res.status(500).json({ message: 'Terjadi kesalahan server saat memproses pencairan' });
+  } finally {
+    client.release(); // Kembalikan koneksi ke pool
   }
 };
 
