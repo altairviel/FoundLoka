@@ -21,7 +21,7 @@ export default function Navbar({ role, user, onLogout }) {
   const notifRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
-  const dashboardPath = role === 'investor' ? '/investor' : role === 'admin' ? '/admin' : '/umkm';
+  const dashboardPath = role === 'investor' ? '/investor' : '/umkm';
 
   const initials = user?.name
     ? user.name

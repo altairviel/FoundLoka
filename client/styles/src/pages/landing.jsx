@@ -93,7 +93,6 @@ export default function Landing({ role, setPage }) {
                 </>
               )}
             </div>
-            <p style={{ fontSize: 12, color: T.gray500, marginTop: 12 }}>Terdaftar &amp; diawasi OJK · Nomor izin: KEP-0012/OJK/2023</p>
           </div>
 
           {/* Sisi Kanan: Gambar Banner */}
