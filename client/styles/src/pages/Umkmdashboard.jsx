@@ -1,5 +1,5 @@
 // client/styles/src/pages/Umkmdashboard.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { T } from '../../tokens';
 import Sidebar from '../components/Sidebar';
@@ -8,11 +8,13 @@ import ProgressBar from '../components/ProgressBar';
 import { getMyCampaign } from '../services/campaign';
 import { getTransactions } from '../services/user';
 import { fmt, pct } from '../utils/format';
+import api from '../services/api';
 
 const SIDEBAR_LINKS = [
-  { id: 'overview',  icon: '⊡', label: 'Ringkasan' },
-  { id: 'campaign',  icon: '◈', label: 'Campaign saya' },
-  { id: 'txn',       icon: '⊞', label: 'Transaksi' },
+  { id: 'overview',     icon: '⊡', label: 'Ringkasan' },
+  { id: 'campaign',     icon: '◈', label: 'Campaign Saya' },
+  { id: 'txn',          icon: '⊞', label: 'Transaksi' },
+  { id: 'dana',         icon: '⬡', label: 'Dana & Kewajiban' },
 ];
 
 const MILESTONES = [
@@ -23,10 +25,11 @@ const MILESTONES = [
   { label: 'Dana dicairkan' },
 ];
 
-function LoadingRow() {
+// ── Helpers ──
+function LoadingRow({ cols = 4 }) {
   return (
     <tr>
-      {[1, 2, 3, 4].map((i) => (
+      {Array.from({ length: cols }).map((_, i) => (
         <td key={i}>
           <div style={{ height: 14, background: T.gray100, borderRadius: 4, width: '80%' }} />
         </td>
@@ -55,6 +58,7 @@ function EmptyState({ navigate }) {
   );
 }
 
+// ── Overview ──
 function Overview({ user, campaign, transactions, loading, navigate }) {
   const targetVal = campaign ? parseFloat(campaign.target_amount || 0) : 0;
   const raisedVal = campaign ? parseFloat(campaign.collected_amount || campaign.raised || 0) : 0;
@@ -83,7 +87,6 @@ function Overview({ user, campaign, transactions, loading, navigate }) {
             <StatCard label="Progress"        value={`${progress}%`} />
           </div>
 
-          {/* Card campaign utama */}
           <div className="ff-card" style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
               <div>
@@ -105,7 +108,6 @@ function Overview({ user, campaign, transactions, loading, navigate }) {
             </div>
           </div>
 
-          {/* Milestone */}
           <div className="ff-card" style={{ marginBottom: '1.5rem' }}>
             <h3 style={{ fontWeight: 600, marginBottom: '1rem', fontSize: 15 }}>Tahapan Campaign</h3>
             <div style={{ display: 'flex', gap: 0 }}>
@@ -135,7 +137,6 @@ function Overview({ user, campaign, transactions, loading, navigate }) {
             </div>
           </div>
 
-          {/* Transaksi terbaru */}
           <div className="ff-card">
             <h3 style={{ fontWeight: 600, marginBottom: '1rem', fontSize: 15 }}>Investasi Terbaru</h3>
             {Array.isArray(transactions) && transactions.length > 0 ? (
@@ -163,6 +164,7 @@ function Overview({ user, campaign, transactions, loading, navigate }) {
   );
 }
 
+// ── Campaign Tab ──
 function CampaignTab({ campaign, loading, navigate }) {
   if (loading) return <p style={{ color: T.gray500 }}>Memuat data campaign...</p>;
   if (!campaign) return <EmptyState navigate={navigate} />;
@@ -221,6 +223,7 @@ function CampaignTab({ campaign, loading, navigate }) {
   );
 }
 
+// ── Transaksi Tab ──
 function TransaksiTab({ transactions, loading }) {
   const safe = Array.isArray(transactions) ? transactions : [];
   return (
@@ -256,14 +259,344 @@ function TransaksiTab({ transactions, loading }) {
   );
 }
 
+// ── Dana & Kewajiban Tab ──
+function DanaTab({ campaign, onToast }) {
+  const [installments, setInstallments] = useState([]);
+  const [summary, setSummary]           = useState(null);
+  const [loading, setLoading]           = useState(true);
+  const [payLoading, setPayLoading]     = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  const fetchInstallments = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data } = await api.get('/installments/my');
+      setInstallments(data.installments || []);
+
+      // hitung summary lokal
+      const list = data.installments || [];
+      setSummary({
+        total:   list.length,
+        paid:    list.filter((i) => i.status === 'paid').length,
+        pending: list.filter((i) => i.status === 'pending').length,
+        late:    list.filter((i) => i.status === 'late').length,
+        totalAmount:   list.reduce((a, b) => a + parseFloat(b.amount || 0), 0),
+        paidAmount:    list.filter((i) => i.status === 'paid').reduce((a, b) => a + parseFloat(b.amount || 0), 0),
+        remainingAmount: list.filter((i) => i.status !== 'paid').reduce((a, b) => a + parseFloat(b.amount || 0), 0),
+      });
+    } catch (err) {
+      // 404 berarti belum ada cicilan (campaign belum dicairkan)
+      if (err.response?.status !== 404) {
+        onToast?.('Gagal memuat data cicilan.', 'error');
+      }
+      setInstallments([]);
+      setSummary(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchInstallments(); }, [fetchInstallments]);
+
+  const handlePay = async (id, monthNumber) => {
+    setPayLoading(id);
+    try {
+      await api.put(`/installments/${id}/pay`);
+      onToast?.(`Cicilan bulan ke-${monthNumber} berhasil dibayar.`, 'success');
+      await fetchInstallments();
+    } catch (err) {
+      onToast?.(err.response?.data?.message || 'Gagal membayar cicilan.', 'error');
+    } finally {
+      setPayLoading(null);
+    }
+  };
+
+  const statusBadge = (s) => {
+    if (s === 'paid')    return <span className="ff-badge ff-badge-green">Lunas</span>;
+    if (s === 'late')    return <span className="ff-badge ff-badge-red">Terlambat</span>;
+    return                      <span className="ff-badge ff-badge-yellow">Belum Bayar</span>;
+  };
+
+  const isDisbursed = campaign?.status === 'repaying' || campaign?.status === 'done';
+  const filtered    = filterStatus === 'all' ? installments : installments.filter((i) => i.status === filterStatus);
+
+  // ── Belum dicairkan ──
+  if (!loading && !isDisbursed && installments.length === 0) {
+    const statusLabel = {
+      pending:  { icon: '⏳', text: 'Campaign masih dalam proses persetujuan admin.', color: '#92400E', bg: '#FFFBEB', border: '#FDE68A' },
+      active:   { icon: '🚀', text: 'Campaign sedang aktif mencari pendanaan dari investor.', color: '#1E40AF', bg: '#EFF6FF', border: '#BFDBFE' },
+      funded:   { icon: '✅', text: 'Campaign sudah fully funded! Menunggu admin mencairkan dana.', color: '#065F46', bg: '#ECFDF5', border: '#6EE7B7' },
+      rejected: { icon: '❌', text: 'Campaign ditolak admin.', color: '#991B1B', bg: '#FEF2F2', border: '#FECACA' },
+    };
+    const info = statusLabel[campaign?.status] || { icon: '📋', text: 'Belum ada data campaign.', color: T.gray500, bg: T.gray50, border: T.gray200 };
+
+    return (
+      <>
+        <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: '1.5rem' }}>Dana & Kewajiban</h2>
+
+        {/* Status card */}
+        <div style={{
+          background: info.bg, border: `1px solid ${info.border}`,
+          borderRadius: 12, padding: '2rem', textAlign: 'center', marginBottom: '1.5rem',
+        }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>{info.icon}</div>
+          <h3 style={{ fontWeight: 600, fontSize: 16, color: info.color, margin: '0 0 8px' }}>
+            Cicilan belum tersedia
+          </h3>
+          <p style={{ fontSize: 14, color: info.color, margin: 0 }}>{info.text}</p>
+        </div>
+
+        {/* Alur proses */}
+        <div className="ff-card">
+          <h3 style={{ fontWeight: 600, fontSize: 15, margin: '0 0 1.25rem' }}>Alur Pencairan & Cicilan</h3>
+          {[
+            { step: 1, label: 'Campaign diajukan',         desc: 'Pemilik UMKM mengajukan campaign ke platform',           done: true },
+            { step: 2, label: 'Persetujuan admin',          desc: 'Admin mereview dan menyetujui campaign',                done: ['active','funded','repaying','done'].includes(campaign?.status) },
+            { step: 3, label: 'Pendanaan investor',         desc: 'Investor menyuntikkan modal hingga target terpenuhi',   done: ['funded','repaying','done'].includes(campaign?.status) },
+            { step: 4, label: 'Pencairan oleh admin',       desc: 'Admin mencairkan dana — cicilan otomatis dibuat',       done: ['repaying','done'].includes(campaign?.status) },
+            { step: 5, label: 'Pembayaran cicilan',         desc: 'UMKM membayar cicilan bulanan kepada investor',         done: campaign?.status === 'done' },
+          ].map((s, i, arr) => (
+            <div key={s.step} style={{ display: 'flex', gap: 14, marginBottom: i < arr.length - 1 ? 0 : 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: s.done ? T.green : T.gray200,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 13, fontWeight: 700, color: s.done ? T.white : T.gray500,
+                }}>
+                  {s.done ? '✓' : s.step}
+                </div>
+                {i < arr.length - 1 && (
+                  <div style={{ width: 2, flex: 1, minHeight: 28, background: s.done ? T.green : T.gray200 }} />
+                )}
+              </div>
+              <div style={{ paddingBottom: i < arr.length - 1 ? 20 : 0, paddingTop: 4 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: s.done ? T.gray900 : T.gray500 }}>{s.label}</div>
+                <div style={{ fontSize: 12, color: T.gray500, marginTop: 2 }}>{s.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  }
+
+  // ── Sudah ada cicilan ──
+  const disbursedAmount = campaign ? parseFloat(campaign.collected_amount || 0) : 0;
+  const returnRate      = campaign?.return_rate || 0;
+  const tenorMonths     = campaign?.tenor_months || 0;
+
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: 8 }}>
+        <h2 style={{ fontSize: 22, fontWeight: 600, margin: 0 }}>Dana & Kewajiban</h2>
+        {campaign?.status === 'done' && (
+          <span className="ff-badge ff-badge-green" style={{ fontSize: 13, padding: '6px 14px' }}>
+            🎉 Semua Cicilan Lunas
+          </span>
+        )}
+      </div>
+
+      {/* Info banner dana cair */}
+      <div style={{
+        background: 'linear-gradient(135deg, #065F46 0%, #1a7a4a 100%)',
+        borderRadius: 12, padding: '1.5rem', marginBottom: '1.5rem',
+        color: T.white, display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center',
+      }}>
+        <div style={{ fontSize: 40 }}>💰</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>DANA YANG DICAIRKAN</div>
+          <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.5px' }}>{fmt(disbursedAmount)}</div>
+          <div style={{ fontSize: 12, opacity: 0.75, marginTop: 4 }}>
+            Return {returnRate}%/tahun · Tenor {tenorMonths} bulan
+          </div>
+        </div>
+        {summary && (
+          <div style={{ display: 'flex', gap: 24 }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 22, fontWeight: 700 }}>{summary.paid}</div>
+              <div style={{ fontSize: 11, opacity: 0.75 }}>Sudah Lunas</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 22, fontWeight: 700 }}>{summary.pending + summary.late}</div>
+              <div style={{ fontSize: 11, opacity: 0.75 }}>Belum Bayar</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Ringkasan kewajiban */}
+      {summary && (
+        <div className="ff-grid-3" style={{ marginBottom: '1.5rem' }}>
+          <div className="ff-card" style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 12, color: T.gray500, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Kewajiban</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: T.gray900 }}>{fmt(summary.totalAmount)}</div>
+            <div style={{ fontSize: 12, color: T.gray500, marginTop: 4 }}>{summary.total} cicilan</div>
+          </div>
+          <div className="ff-card" style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 12, color: T.gray500, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sudah Dibayar</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: T.green }}>{fmt(summary.paidAmount)}</div>
+            <div style={{ fontSize: 12, color: T.gray500, marginTop: 4 }}>{summary.paid} cicilan lunas</div>
+          </div>
+          <div className="ff-card" style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 12, color: T.gray500, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sisa Kewajiban</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: summary.late > 0 ? '#DC2626' : '#D97706' }}>
+              {fmt(summary.remainingAmount)}
+            </div>
+            <div style={{ fontSize: 12, color: T.gray500, marginTop: 4 }}>
+              {summary.late > 0 && <span style={{ color: '#DC2626', fontWeight: 600 }}>⚠ {summary.late} terlambat · </span>}
+              {summary.pending} belum dibayar
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Progress bar pelunasan */}
+      {summary && summary.total > 0 && (
+        <div className="ff-card" style={{ marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Progress Pelunasan</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: T.green }}>
+              {Math.round((summary.paid / summary.total) * 100)}%
+            </span>
+          </div>
+          <div style={{ height: 10, background: T.gray100, borderRadius: 99 }}>
+            <div style={{
+              width: `${Math.round((summary.paid / summary.total) * 100)}%`,
+              height: '100%', background: T.green, borderRadius: 99,
+              transition: 'width 0.5s ease',
+            }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 12, color: T.gray500 }}>
+            <span>{summary.paid} dari {summary.total} cicilan lunas</span>
+            <span>{summary.total - summary.paid} sisa</span>
+          </div>
+        </div>
+      )}
+
+      {/* Tabel cicilan */}
+      <div className="ff-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ padding: '1rem 1.25rem', borderBottom: `1px solid ${T.gray200}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+          <h3 style={{ fontWeight: 600, fontSize: 15, margin: 0 }}>Jadwal Cicilan</h3>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {['all', 'pending', 'late', 'paid'].map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilterStatus(f)}
+                className="ff-btn ff-btn-sm"
+                style={{
+                  background:  filterStatus === f ? T.green : T.white,
+                  color:       filterStatus === f ? T.white : T.gray700,
+                  borderColor: filterStatus === f ? T.green : T.gray200,
+                  fontSize: 12,
+                }}
+              >
+                {{ all: 'Semua', pending: 'Belum Bayar', late: 'Terlambat', paid: 'Lunas' }[f]}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="ff-table">
+            <thead>
+              <tr>
+                <th>Bulan ke-</th>
+                <th>Jatuh Tempo</th>
+                <th>Jumlah</th>
+                <th>Status</th>
+                <th>Tanggal Bayar</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading
+                ? [1, 2, 3, 4].map((i) => <LoadingRow key={i} cols={6} />)
+                : filtered.length === 0
+                  ? (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', color: T.gray500, padding: '2rem' }}>
+                        Tidak ada cicilan{filterStatus !== 'all' ? ' dengan filter ini' : ''}.
+                      </td>
+                    </tr>
+                  )
+                  : filtered.map((ins) => {
+                    const isLate    = ins.status === 'late' || (ins.status === 'pending' && new Date(ins.due_date) < new Date());
+                    const effectiveStatus = isLate && ins.status !== 'paid' ? 'late' : ins.status;
+                    return (
+                      <tr key={ins.id} style={{ background: effectiveStatus === 'late' ? '#FFF5F5' : 'inherit' }}>
+                        <td style={{ fontWeight: 700, color: T.gray900 }}>
+                          Bulan {ins.month_number}
+                        </td>
+                        <td style={{ fontSize: 13, color: effectiveStatus === 'late' ? '#DC2626' : T.gray700, fontWeight: effectiveStatus === 'late' ? 600 : 400 }}>
+                          {ins.due_date ? new Date(ins.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                          {effectiveStatus === 'late' && <span style={{ marginLeft: 6, fontSize: 11 }}>⚠</span>}
+                        </td>
+                        <td style={{ fontWeight: 600, color: T.gray900 }}>{fmt(parseFloat(ins.amount || 0))}</td>
+                        <td>{statusBadge(effectiveStatus)}</td>
+                        <td style={{ fontSize: 13, color: T.gray500 }}>
+                          {ins.paid_at ? new Date(ins.paid_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                        </td>
+                        <td>
+                          {ins.status !== 'paid' ? (
+                            <button
+                              disabled={payLoading === ins.id}
+                              className="ff-btn ff-btn-sm"
+                              style={{
+                                background: effectiveStatus === 'late' ? '#DC2626' : T.green,
+                                color: T.white,
+                                borderColor: effectiveStatus === 'late' ? '#DC2626' : T.green,
+                                fontSize: 12,
+                                opacity: payLoading === ins.id ? 0.6 : 1,
+                              }}
+                              onClick={() => handlePay(ins.id, ins.month_number)}
+                            >
+                              {payLoading === ins.id ? 'Memproses...' : '💳 Bayar'}
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: 12, color: T.green, fontWeight: 600 }}>✓ Lunas</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Catatan */}
+      <div style={{ marginTop: '1rem', padding: '12px 16px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 10, fontSize: 13, color: '#92400E' }}>
+        ⚠️ Cicilan yang melewati jatuh tempo akan otomatis berstatus <strong>Terlambat</strong>. Segera bayar untuk menghindari denda dan menjaga kepercayaan investor.
+      </div>
+    </>
+  );
+}
+
+// ── Toast ──
+function Toast({ message, type }) {
+  return (
+    <div style={{
+      position: 'fixed', bottom: 24, right: 24, zIndex: 99999,
+      background: type === 'error' ? '#DC2626' : T.green,
+      color: T.white, padding: '12px 20px', borderRadius: 10,
+      fontSize: 14, fontWeight: 500, boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+    }}>
+      {type === 'error' ? '⚠️ ' : '✓ '}{message}
+    </div>
+  );
+}
+
+// ── Main ──
 export default function UMKMDashboard({ user }) {
   const navigate = useNavigate();
-  const [tab, setTab]               = useState('overview');
-  const [campaign, setCampaign]     = useState(null);
+  const [tab, setTab]                   = useState('overview');
+  const [campaign, setCampaign]         = useState(null);
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading]       = useState(true);
+  const [loading, setLoading]           = useState(true);
+  const [toast, setToast]               = useState(null);
   const [isOpenMobileMenu, setIsOpenMobileMenu] = useState(false);
-  const [isMobile, setIsMobile]     = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile]         = useState(window.innerWidth <= 768);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -276,7 +609,6 @@ export default function UMKMDashboard({ user }) {
       try {
         const [campRes, txnRes] = await Promise.all([getMyCampaign(), getTransactions()]);
 
-        // Normalisasi data campaign
         const campList = campRes.data?.campaigns || campRes.data;
         let campData = null;
         if (Array.isArray(campList) && campList.length > 0) {
@@ -289,7 +621,6 @@ export default function UMKMDashboard({ user }) {
         }
         setCampaign(campData);
 
-        // Normalisasi transaksi
         const tData = txnRes.data?.transactions || txnRes.data?.investments || txnRes.data;
         setTransactions(Array.isArray(tData) ? tData : []);
       } catch (err) {
@@ -300,6 +631,11 @@ export default function UMKMDashboard({ user }) {
       }
     };
     fetchData();
+  }, []);
+
+  const showToast = useCallback((message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
   }, []);
 
   const initials = user?.name
@@ -324,6 +660,8 @@ export default function UMKMDashboard({ user }) {
 
   return (
     <div style={{ display: 'flex', minHeight: 'calc(100vh - 56px)', position: 'relative', flexDirection: isMobile ? 'column' : 'row' }}>
+
+      {toast && <Toast message={toast.message} type={toast.type} />}
 
       {/* Tombol Terapung Mobile */}
       {isMobile && (
@@ -403,6 +741,7 @@ export default function UMKMDashboard({ user }) {
         {tab === 'overview' && <Overview user={user} campaign={campaign} transactions={transactions} loading={loading} navigate={navigate} />}
         {tab === 'campaign' && <CampaignTab campaign={campaign} loading={loading} navigate={navigate} />}
         {tab === 'txn'      && <TransaksiTab transactions={transactions} loading={loading} />}
+        {tab === 'dana'     && <DanaTab campaign={campaign} onToast={showToast} />}
       </main>
     </div>
   );

@@ -21,7 +21,7 @@ export default function Navbar({ role, user, onLogout }) {
   const notifRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
-  const dashboardPath = role === 'investor' ? '/investor' : '/umkm';
+  const dashboardPath = role === 'investor' ? '/investor' : role === 'admin' ? '/admin' : '/umkm';
 
   const initials = user?.name
     ? user.name
@@ -92,11 +92,14 @@ export default function Navbar({ role, user, onLogout }) {
     }
   };
 
-  const navLinks = [
-    { path: '/campaign', label: 'Kampanye' },
-    { path: '/map', label: 'Peta' }, 
-    { path: dashboardPath, label: 'Dashboard' },
-  ];
+  // Admin tidak punya akses ke halaman lain selain dashboard-nya sendiri
+  const navLinks = role === 'admin'
+    ? []
+    : [
+        { path: '/campaign', label: 'Kampanye' },
+        { path: '/map', label: 'Peta' },
+        { path: dashboardPath, label: 'Dashboard' },
+      ];
 
   return (
     <>
@@ -117,6 +120,8 @@ export default function Navbar({ role, user, onLogout }) {
       >
         {/* Kiri: Hamburger + Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {/* Hamburger hanya untuk non-admin */}
+          {role !== 'admin' && (
           <button
             className="ff-hamburger-btn"
             onClick={() => {
@@ -135,6 +140,7 @@ export default function Navbar({ role, user, onLogout }) {
           >
             {showMobileMenu ? '✕' : '☰'}
           </button>
+          )}
 
           {/* Logo */}
           <button
@@ -360,8 +366,8 @@ export default function Navbar({ role, user, onLogout }) {
         </div>
       </nav>
 
-      {/* Menu Drawer Mobile */}
-      {showMobileMenu && (
+      {/* Menu Drawer Mobile — hanya untuk non-admin */}
+      {showMobileMenu && role !== 'admin' && (
         <div
           ref={mobileMenuRef}
           className="ff-mobile-menu"
