@@ -6,10 +6,9 @@ require('./src/config/db');
 
 const app = express();
 
-const cors = require('cors');
 app.use(
   cors({
-    origin: ['https://found-loka.vercel.app'], // URL frontend kamu
+    origin: process.env.FRONTEND_URL || 'foundloka-production.up.railway.app',
     credentials: true,
   }),
 );
