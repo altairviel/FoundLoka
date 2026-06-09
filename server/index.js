@@ -6,9 +6,10 @@ require('./src/config/db');
 
 const app = express();
 
+const cors = require('cors');
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: ['https://found-loka.vercel.app'], // URL frontend kamu
     credentials: true,
   }),
 );
@@ -28,7 +29,7 @@ app.use('/api/admin', require('./src/routes/adminRoutes'));
 
 //testing route
 app.get('/', (req, res) => {
-  res.json({ message: 'tesss' });
+  res.json({ message: 'Server FoundLoka berhasil berjalan' });
 });
 
 //port env
