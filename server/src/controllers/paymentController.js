@@ -142,8 +142,7 @@ const createInstallmentPayment = async (req, res) => {
 // Tambahkan fungsi ini di atas handleWebhook
 const processInvestment = async (tx) => {
   try {
-    // 1. Update status transaksi (jika belum di-update di handleWebhook)
-    // 2. Tambahkan jumlah investasi ke collected_amount di tabel campaigns
+    // 1. Update jumlah yang terkumpul di tabel campaigns
     await pool.query(
       `UPDATE campaigns 
        SET collected_amount = collected_amount + $1 
@@ -151,10 +150,18 @@ const processInvestment = async (tx) => {
       [tx.amount, tx.campaign_id],
     );
 
-    console.log(`Investasi sebesar Rp ${tx.amount} sukses ditambahkan ke kampanye ${tx.campaign_id}`);
+    // 2. Tambahkan record ke tabel investments
+    // Pastikan tx.user_id berisi ID investor yang benar
+    await pool.query(
+      `INSERT INTO investments (id, investor_id, campaign_id, amount, created_at) 
+       VALUES (gen_random_uuid(), $1, $2, $3, NOW())`,
+      [tx.user_id, tx.campaign_id, tx.amount],
+    );
+
+    console.log(`✅ Investasi sebesar Rp ${tx.amount} sukses tercatat di tabel investments untuk campaign ${tx.campaign_id}`);
   } catch (err) {
     console.error('Error in processInvestment:', err.message);
-    throw err; // Lempar error agar handleWebhook tahu ada masalah
+    throw err;
   }
 };
 
