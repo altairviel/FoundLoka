@@ -13,11 +13,11 @@ export default function Auth({ setRole, setPage, setUser }) {
   const [coords, setCoords] = useState({ lat: null, lng: null });
 
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
-  
+
   const [registerForm, setRegisterForm] = useState({
     name: '',
     email: '',
-    phone: '', 
+    phone: '',
     password: '',
     confirmPassword: '',
   });
@@ -62,8 +62,7 @@ export default function Auth({ setRole, setPage, setUser }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!loginForm.email || !loginForm.password)
-      return setError('Email dan password wajib diisi');
+    if (!loginForm.email || !loginForm.password) return setError('Email dan password wajib diisi');
 
     setLoading(true);
     setError('');
@@ -90,7 +89,6 @@ export default function Auth({ setRole, setPage, setUser }) {
         setRole(userToStore.role);
         setPage('landing');
       }, 800);
-
     } catch (err) {
       const status = err.response?.status;
       const serverMsg = err.response?.data?.message;
@@ -115,12 +113,9 @@ export default function Auth({ setRole, setPage, setUser }) {
     e.preventDefault();
     const { name, email, phone, password, confirmPassword } = registerForm;
 
-    if (!name || !email || !password || !confirmPassword)
-      return setError('Semua field wajib diisi');
-    if (password !== confirmPassword)
-      return setError('Password dan konfirmasi password tidak cocok');
-    if (password.length < 6)
-      return setError('Password minimal 6 karakter');
+    if (!name || !email || !password || !confirmPassword) return setError('Semua field wajib diisi');
+    if (password !== confirmPassword) return setError('Password dan konfirmasi password tidak cocok');
+    if (password.length < 6) return setError('Password minimal 6 karakter');
 
     setLoading(true);
     setError('');
@@ -130,7 +125,7 @@ export default function Auth({ setRole, setPage, setUser }) {
       const { data } = await api.post('/auth/register', {
         name,
         email,
-        phone, 
+        phone,
         password,
         role: selectedRole === 'umkm' ? 'owner' : 'investor',
         lat: coords.lat,
@@ -152,7 +147,6 @@ export default function Auth({ setRole, setPage, setUser }) {
         setRole(userToStore.role);
         setPage('landing');
       }, 800);
-
     } catch (err) {
       const status = err.response?.status;
       const serverMsg = err.response?.data?.message;
@@ -185,62 +179,65 @@ export default function Auth({ setRole, setPage, setUser }) {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: T.gray50, flexDirection: isMobile ? 'column' : 'row' }}>
-      
       {/* Kiri/Atas: Branding */}
-      <div style={{ 
-        flex: isMobile ? 'none' : 1, 
-        background: T.greenDark, 
-        color: T.white, 
-        padding: isMobile ? '2rem 1.5rem' : '3rem', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'space-between',
-        minHeight: isMobile ? 'auto' : '100vh'
-      }}>
+      <div
+        style={{
+          flex: isMobile ? 'none' : 1,
+          background: T.greenDark,
+          color: T.white,
+          padding: isMobile ? '2rem 1.5rem' : '3rem',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          minHeight: isMobile ? 'auto' : '100vh',
+        }}
+      >
         <div>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <img src={folkLokaLoginLogo} alt="FolkLoka Logo" style={{ height: isMobile ? 38 : 48, objectFit: 'contain' }} />
           </div>
-          <h1 style={{ 
-            fontSize: isMobile ? '1.75rem' : '2.5rem', 
-            fontWeight: 600, 
-            marginTop: isMobile ? '1.5rem' : '4rem', 
-            lineHeight: 1.2 
-          }}>
-            Membangun ekonomi,<br />satu UMKM pada satu waktu.
+          <h1
+            style={{
+              fontSize: isMobile ? '1.75rem' : '2.5rem',
+              fontWeight: 600,
+              marginTop: isMobile ? '1.5rem' : '4rem',
+              lineHeight: 1.2,
+            }}
+          >
+            Membangun ekonomi,
+            <br />
+            satu UMKM pada satu waktu.
           </h1>
         </div>
-        {!isMobile && (
-          <div style={{ fontSize: 13, color: T.greenLight, opacity: 0.8 }}>© 2026 Folk Loka. All rights reserved.</div>
-        )}
+        {!isMobile && <div style={{ fontSize: 13, color: T.greenLight, opacity: 0.8 }}>© 2026 FoundLoka. All rights reserved.</div>}
       </div>
 
       {/* Kanan/Bawah: Form Container */}
-      <div style={{ 
-        flex: 1, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        padding: isMobile ? '1.5rem' : '2rem', 
-        overflowY: 'auto' 
-      }}>
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: isMobile ? '1.5rem' : '2rem',
+          overflowY: 'auto',
+        }}
+      >
         <div style={{ maxWidth: 400, width: '100%' }}>
-          <h2 style={{ fontSize: isMobile ? 24 : 28, fontWeight: 700, marginBottom: '0.5rem' }}>
-            {isRegister ? 'Buat Akun Baru' : 'Selamat Datang Kembali'}
-          </h2>
-          <p style={{ color: T.gray500, fontSize: 14, marginBottom: isMobile ? '1.5rem' : '2rem' }}>
-            {isRegister ? 'Daftar untuk mulai berinvestasi atau mencari pendanaan.' : 'Silakan masuk untuk mengakses dashboard Anda.'}
-          </p>
+          <h2 style={{ fontSize: isMobile ? 24 : 28, fontWeight: 700, marginBottom: '0.5rem' }}>{isRegister ? 'Buat Akun Baru' : 'Selamat Datang Kembali'}</h2>
+          <p style={{ color: T.gray500, fontSize: 14, marginBottom: isMobile ? '1.5rem' : '2rem' }}>{isRegister ? 'Daftar untuk mulai berinvestasi atau mencari pendanaan.' : 'Silakan masuk untuk mengakses dashboard Anda.'}</p>
 
           {error && (
             <div style={{ background: '#FEE2E2', color: '#B91C1C', fontSize: 13, padding: '10px 12px', borderRadius: 8, marginBottom: '1rem', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-              <span>⚠️</span><span>{error}</span>
+              <span>⚠️</span>
+              <span>{error}</span>
             </div>
           )}
 
           {successMessage && (
             <div style={{ background: '#D1FAE5', color: '#065F46', fontSize: 13, padding: '10px 12px', borderRadius: 8, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span>✅</span><span>{successMessage}</span>
+              <span>✅</span>
+              <span>{successMessage}</span>
             </div>
           )}
 
@@ -285,28 +282,30 @@ export default function Auth({ setRole, setPage, setUser }) {
 
               <div style={{ marginBottom: '2rem' }}>
                 <label className="ff-label">Saya mendaftar sebagai:</label>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
-                  gap: '0.75rem', 
-                  marginTop: '0.5rem' 
-                }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                    gap: '0.75rem',
+                    marginTop: '0.5rem',
+                  }}
+                >
                   {[
                     { key: 'investor', emoji: '📈', label: 'Investor', sub: 'Saya ingin berinvestasi' },
                     { key: 'umkm', emoji: '🏪', label: 'Pemilik UMKM', sub: 'Saya mencari pendanaan' },
                   ].map(({ key, emoji, label, sub }) => (
-                    <div 
-                      key={key} 
-                      onClick={() => setSelectedRole(key)} 
-                      style={{ 
-                        border: `2px solid ${selectedRole === key ? T.green : T.gray200}`, 
-                        background: selectedRole === key ? T.greenLight : T.white, 
-                        padding: '1rem', 
-                        borderRadius: 8, 
-                        cursor: 'pointer', 
+                    <div
+                      key={key}
+                      onClick={() => setSelectedRole(key)}
+                      style={{
+                        border: `2px solid ${selectedRole === key ? T.green : T.gray200}`,
+                        background: selectedRole === key ? T.greenLight : T.white,
+                        padding: '1rem',
+                        borderRadius: 8,
+                        cursor: 'pointer',
                         transition: 'all 0.2s',
-                        display: isMobile ? 'flex' : 'block', 
-                        alignItems: 'center', 
+                        display: isMobile ? 'flex' : 'block',
+                        alignItems: 'center',
                         gap: 12,
                       }}
                     >
@@ -328,7 +327,14 @@ export default function Auth({ setRole, setPage, setUser }) {
 
           <p style={{ textAlign: 'center', marginTop: '2rem', fontSize: 14, color: T.gray500, paddingBottom: isMobile ? '2rem' : 0 }}>
             {isRegister ? 'Sudah punya akun? ' : 'Belum terdaftar? '}
-            <span style={{ color: T.green, fontWeight: 600, cursor: 'pointer' }} onClick={() => { setIsRegister(!isRegister); setError(''); setSuccessMessage(''); }}>
+            <span
+              style={{ color: T.green, fontWeight: 600, cursor: 'pointer' }}
+              onClick={() => {
+                setIsRegister(!isRegister);
+                setError('');
+                setSuccessMessage('');
+              }}
+            >
               {isRegister ? 'Masuk di sini' : 'Daftar sekarang'}
             </span>
           </p>
