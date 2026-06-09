@@ -60,7 +60,7 @@ export default function MapView() {
 
   return (
     <div style={{ height: 'calc(100vh - 60px)', display: 'flex', flexDirection: 'column' }}>
-      {/* Header + Filter  */}
+      {/*  Header + Filter  */}
       <div style={{ padding: '1rem 1.5rem', background: T.white, borderBottom: T.border, display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
         <div>
           <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>Peta Ekonomi Komunitas</h2>
@@ -90,7 +90,7 @@ export default function MapView() {
         </div>
       </div>
 
-      {/* Peta  */}
+      {/*  Peta  */}
       {loading ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.gray500 }}>Memuat peta...</div>
       ) : (
@@ -103,9 +103,10 @@ export default function MapView() {
             <FixMapLayout />
 
             {/* Pin tiap kampanye */}
+            {/* Pin tiap kampanye */}
             {filtered.map((loc) => {
-              // Memaksa status menjadi huruf kecil agar cocok dengan key STATUS_COLOR & STATUS_LABEL
-              const currentStatus = loc.status ? loc.status.toLowerCase() : 'active';
+              // Menampilkan data asli dari database ke console log browser
+              console.log('Cek data UMKM dari server:', { nama: loc.title, status: loc.status });
 
               return (
                 <CircleMarker
@@ -113,7 +114,7 @@ export default function MapView() {
                   center={[parseFloat(loc.lat), parseFloat(loc.lng)]}
                   radius={10}
                   pathOptions={{
-                    fillColor: STATUS_COLOR[currentStatus] || '#6b7280',
+                    fillColor: STATUS_COLOR[loc.status] || '#6b7280',
                     fillOpacity: 0.85,
                     color: T.white,
                     weight: 2,
@@ -130,11 +131,11 @@ export default function MapView() {
                           borderRadius: 99,
                           fontSize: 11,
                           fontWeight: 500,
-                          background: STATUS_COLOR[currentStatus] + '20',
-                          color: STATUS_COLOR[currentStatus],
+                          background: (STATUS_COLOR[loc.status] || '#6b7280') + '20',
+                          color: STATUS_COLOR[loc.status] || '#6b7280',
                         }}
                       >
-                        {STATUS_LABEL[currentStatus] || loc.status}
+                        {STATUS_LABEL[loc.status] || loc.status}
                       </span>
 
                       {/* Nama kampanye */}
@@ -154,7 +155,7 @@ export default function MapView() {
                             style={{
                               height: '100%',
                               borderRadius: 99,
-                              background: STATUS_COLOR[currentStatus] || '#16a34a',
+                              background: STATUS_COLOR[loc.status] || '#16a34a',
                               width: `${Math.min(pct(parseFloat(loc.collected_amount || 0), parseFloat(loc.target_amount || 1)), 100)}%`,
                             }}
                           />
@@ -193,7 +194,7 @@ export default function MapView() {
             })}
           </MapContainer>
 
-          {/* Legend  */}
+          {/*  Legend  */}
           <div
             style={{
               position: 'absolute',
