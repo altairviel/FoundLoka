@@ -161,7 +161,7 @@ export default function CampaignDetail({ role }) {
   const returnRate = c.return_rate ?? c.return ?? '—';
   const tenor = c.tenor_months ?? c.tenor ?? '—';
   const monthly = tenor && returnRate && target ? Math.round((target * (1 + parseFloat(returnRate) / 100)) / parseInt(tenor)) : null;
-
+  const isFullyFunded = raised >= target;
   return (
     <div style={{ background: T.gray50, minHeight: 'calc(100vh - 56px)' }}>
       <div className="ff-container" style={{ paddingTop: isMobile ? '1rem' : '2rem', paddingBottom: '4rem', paddingLeft: isMobile ? '1rem' : undefined, paddingRight: isMobile ? '1rem' : undefined }}>
@@ -378,7 +378,7 @@ export default function CampaignDetail({ role }) {
 
               <div style={{ height: 1, background: T.gray200, margin: '1rem 0' }} />
 
-              {role === 'investor' && c.status === 'active' ? (
+              {role === 'investor' && c.status === 'active' && !isFullyFunded ? (
                 <>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 500, marginBottom: 6 }}>Jumlah investasi (Rp)</label>
                   <input
@@ -424,7 +424,7 @@ export default function CampaignDetail({ role }) {
                   <p style={{ fontSize: 11, color: T.gray500, textAlign: 'center', marginTop: 8 }}>Minimum Rp 100.000 · Pembayaran via Midtrans</p>
                 </>
               ) : role === 'investor' ? (
-                <div style={{ textAlign: 'center', padding: '1rem 0', fontSize: 14, color: T.gray500 }}>Kampanye ini sudah tidak menerima investasi.</div>
+                <div style={{ textAlign: 'center', padding: '1rem 0', fontSize: 14, color: T.gray500 }}>{isFullyFunded ? 'Kampanye ini sudah mencapai target pendanaan.' : 'Kampanye ini sudah tidak menerima investasi.'}</div>
               ) : (
                 <div style={{ textAlign: 'center', padding: '1rem 0', fontSize: 13, color: T.gray500 }}>Login sebagai investor untuk berinvestasi.</div>
               )}

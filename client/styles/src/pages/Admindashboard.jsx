@@ -5,7 +5,6 @@ import Sidebar from '../components/Sidebar';
 import StatCard from '../components/StatCard';
 import { fmt } from '../utils/format';
 import { getAdminStats, getAllCampaigns, approveCampaign, rejectCampaign, disburseCampaign } from '../services/admin';
-
 // Sidebar hanya dua tab sesuai fungsi backend
 const SIDEBAR_LINKS = [
   { id: 'overview', icon: '⊡', label: 'Overview' },
@@ -166,13 +165,13 @@ function OverviewTab({ user, stats, loadingStats }) {
   );
 }
 
-
 // Aksi yang tersedia sesuai backend: approve, reject, disburse
-function CampaignsTab({ onToast }) {
+function CampaignsTab({ onToast, refreshStats }) {
+  // Tambahkan prop refreshStats
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
-  const [confirm, setConfirm] = useState(null); // { action, id, message }
+  const [confirm, setConfirm] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
 
   const fetchCampaigns = useCallback(async () => {
@@ -200,8 +199,12 @@ function CampaignsTab({ onToast }) {
       if (action === 'approve') await approveCampaign(id);
       if (action === 'reject') await rejectCampaign(id);
       if (action === 'disburse') await disburseCampaign(id);
-      onToast(action === 'approve' ? 'Campaign disetujui.' : action === 'reject' ? 'Campaign ditolak.' : 'Dana campaign dicairkan.', 'success');
+
+      onToast('Aksi berhasil.', 'success');
+
+      // PENTING: Refresh tabel DAN refresh statistik di Overview
       await fetchCampaigns();
+      if (refreshStats) await refreshStats();
     } catch (err) {
       onToast(err.response?.data?.message || 'Aksi gagal.', 'error');
     } finally {
@@ -209,19 +212,13 @@ function CampaignsTab({ onToast }) {
     }
   };
 
-  // 💡 TOMBOL FILTER "DANA CAIR" DIHAPUS DI SINI
   const FILTERS = ['all', 'pending', 'active', 'funded', 'rejected'];
   const FILTER_LABELS = { all: 'Semua', pending: 'Menunggu', active: 'Aktif', funded: 'Terdanai', rejected: 'Ditolak' };
-
   const filtered = filter === 'all' ? campaigns : campaigns.filter((c) => c.status === filter);
-
-  const pendingCount = campaigns.filter((c) => c.status === 'pending').length;
-  const fundedCount = campaigns.filter((c) => c.status === 'funded').length;
 
   return (
     <>
       {confirm && <ConfirmModal message={confirm.message} onConfirm={handleAction} onCancel={() => setConfirm(null)} />}
-
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: 8 }}>
         <h2 style={{ fontSize: 22, fontWeight: 600, margin: 0 }}>Kelola Campaign</h2>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -372,27 +369,19 @@ export default function AdminDashboard({ user }) {
   const [tab, setTab] = useState('overview');
   const [stats, setStats] = useState(null);
   const [loadingStats, setLoadingStats] = useState(true);
-  const [toast, setToast] = useState(null);
-  const [isOpenMobileMenu, setIsOpenMobileMenu] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  const fetchStats = async () => {
+    try {
+      const { data } = await getAdminStats();
+      setStats(data.stats || data);
+    } catch (err) {
+      console.warn('Gagal fetch stats:', err.message);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   useEffect(() => {
-    const h = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', h);
-    return () => window.removeEventListener('resize', h);
-  }, []);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const { data } = await getAdminStats();
-        setStats(data.stats || data);
-      } catch (err) {
-        console.warn('Gagal fetch stats:', err.message);
-      } finally {
-        setLoadingStats(false);
-      }
-    };
     fetchStats();
   }, []);
 
@@ -534,7 +523,7 @@ export default function AdminDashboard({ user }) {
       {/* Konten Utama */}
       <main style={{ flex: 1, padding: isMobile ? '1rem' : '2rem', background: T.gray50, overflow: 'auto', width: '100%' }}>
         {tab === 'overview' && <OverviewTab user={user} stats={stats} loadingStats={loadingStats} />}
-        {tab === 'campaigns' && <CampaignsTab onToast={showToast} />}
+        {tab === 'campaigns' && <CampaignsTab onToast={showToast} refreshStats={fetchStats} />}
       </main>
     </div>
   );

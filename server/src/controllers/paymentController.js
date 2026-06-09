@@ -140,28 +140,45 @@ const createInstallmentPayment = async (req, res) => {
 };
 
 // Tambahkan fungsi ini di atas handleWebhook
+// Perbaikan fungsi processInvestment
 const processInvestment = async (tx) => {
+  const client = await pool.connect();
   try {
-    // 1. Update jumlah yang terkumpul di tabel campaigns
-    await pool.query(
+    await client.query('BEGIN'); // Memulai transaksi
+
+    // 1. Update jumlah terkumpul dan ambil data target secara bersamaan
+    const updateRes = await client.query(
       `UPDATE campaigns 
        SET collected_amount = collected_amount + $1 
-       WHERE id = $2`,
+       WHERE id = $2 
+       RETURNING collected_amount, target_amount, status`,
       [tx.amount, tx.campaign_id],
     );
 
-    // 2. Tambahkan record ke tabel investments
-    // Pastikan tx.user_id berisi ID investor yang benar
-    await pool.query(
+    const campaign = updateRes.rows[0];
+
+    // 2. Insert record ke tabel investments
+    await client.query(
       `INSERT INTO investments (id, investor_id, campaign_id, amount, created_at) 
        VALUES (gen_random_uuid(), $1, $2, $3, NOW())`,
       [tx.user_id, tx.campaign_id, tx.amount],
     );
 
-    console.log(`✅ Investasi sebesar Rp ${tx.amount} sukses tercatat di tabel investments untuk campaign ${tx.campaign_id}`);
+    // 3. LOGIKA OTOMATIS: Jika target tercapai, ubah status ke 'funded'
+    // Kita hanya ubah jika status saat ini masih 'active'
+    if (campaign.status === 'active' && parseFloat(campaign.collected_amount) >= parseFloat(campaign.target_amount)) {
+      await client.query("UPDATE campaigns SET status = 'funded' WHERE id = $1", [tx.campaign_id]);
+      console.log(`✅ Kampanye ${tx.campaign_id} mencapai target! Status diubah ke 'funded'`);
+    }
+
+    await client.query('COMMIT'); // Simpan semua perubahan
+    console.log(`✅ Investasi Rp ${tx.amount} sukses tercatat.`);
   } catch (err) {
+    await client.query('ROLLBACK'); // Batalkan jika ada error
     console.error('Error in processInvestment:', err.message);
     throw err;
+  } finally {
+    client.release(); // Lepaskan koneksi
   }
 };
 
