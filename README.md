@@ -53,7 +53,7 @@ Found Loka adalah platform berbasis web yang dirancang untuk mempertemukan pelak
 
 
 ## ⚙️ Arsitektur Sistem
-Frontend -> REST API -> Backend Server -> Database
+Frontend -> REST API -> Backend Server -> Database. 
 Sistem menggunakan arsitektur client-server dimana frontend berkomunikasi dengan backend melalui REST API dan seluruh data disimpan pada database.
 
 
