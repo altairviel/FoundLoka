@@ -1,17 +1,8 @@
 import { useState } from 'react';
-import axios from 'axios'; 
+import axios from 'axios';
 import { createInvestmentPayment, createInstallmentPayment } from '../services/payment';
 
-export default function PaymentButton({
-  type, 
-  campaignId, 
-  amount, 
-  installmentId, 
-  onSuccess, 
-  onError, 
-  label = 'Bayar Sekarang',
-  style = {},
-}) {
+export default function PaymentButton({ type, campaignId, amount, installmentId, onSuccess, onError, label = 'Bayar Sekarang', style = {} }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -39,10 +30,9 @@ export default function PaymentButton({
         onSuccess: async (result) => {
           setMessage('✅ Pembayaran berhasil diproses!');
 
-          try {                           
-            const token = localStorage.getItem('token');  // Ambil token auth JWT dari localStorage untuk melewati middleware 'protect' backend
-            await axios.post('https://contact-mumble-unfunded.ngrok-free.dev/api/payments/demo-success', { order_id: result.order_id || orderId }, { headers: { Authorization: `Bearer ${token}` } });
-
+          try {
+            const token = localStorage.getItem('token'); // Ambil token auth JWT dari localStorage untuk melewati middleware 'protect' backend
+            await axios.post('http://localhost:5000/api/payments/demo-success', { order_id: result.order_id || orderId }, { headers: { Authorization: `Bearer ${token}` } });
             if (onSuccess) onSuccess(result);
 
             setTimeout(() => {
