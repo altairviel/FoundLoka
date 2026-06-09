@@ -32,7 +32,7 @@ export default function PaymentButton({ type, campaignId, amount, installmentId,
 
           try {
             const token = localStorage.getItem('token'); // Ambil token auth JWT dari localStorage untuk melewati middleware 'protect' backend
-            await axios.post('http://localhost:5000/api/payments/demo-success', { order_id: result.order_id || orderId }, { headers: { Authorization: `Bearer ${token}` } });
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/payments/demo-success`, { order_id: result.order_id || orderId }, { headers: { Authorization: `Bearer ${token}` } });
             if (onSuccess) onSuccess(result);
 
             setTimeout(() => {
