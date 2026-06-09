@@ -7,7 +7,7 @@ Platform digital yang menghubungkan UMKM dengan investor untuk menciptakan ekosi
 Found Loka adalah platform berbasis web yang dirancang untuk mempertemukan pelaku UMKM yang membutuhkan pendanaan dengan investor yang ingin menanamkan modal pada usaha yang potensial. Melalui platform ini, UMKM dapat membuat profil usaha, mengajukan proposal pendanaan, dan mempresentasikan perkembangan bisnis mereka. Investor dapat menelusuri berbagai UMKM, menganalisis proposal yang tersedia, dan melakukan investasi berdasarkan informasi yang transparan.
 
 
-## 🚀 Isi Found Loka
+## 🚀 Isi FoundLoka
 
 ### Semua Pengguna
 - Melihat landing page dan informasi platform
