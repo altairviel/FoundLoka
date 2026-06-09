@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet'; 
-import { useNavigate } from 'react-router-dom'; 
-import 'leaflet/dist/leaflet.css'; 
+import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from 'react-leaflet';
+import { useNavigate } from 'react-router-dom';
+import 'leaflet/dist/leaflet.css';
 import { T } from '../../tokens';
 import { getMapData } from '../services/campaign';
 import { fmt, pct } from '../utils/format';
@@ -60,7 +60,7 @@ export default function MapView() {
 
   return (
     <div style={{ height: 'calc(100vh - 60px)', display: 'flex', flexDirection: 'column' }}>
-      {/*  Header + Filter  */}
+      {/* Header + Filter  */}
       <div style={{ padding: '1rem 1.5rem', background: T.white, borderBottom: T.border, display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
         <div>
           <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>Peta Ekonomi Komunitas</h2>
@@ -90,7 +90,7 @@ export default function MapView() {
         </div>
       </div>
 
-      {/*  Peta  */}
+      {/* Peta  */}
       {loading ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.gray500 }}>Memuat peta...</div>
       ) : (
@@ -103,93 +103,97 @@ export default function MapView() {
             <FixMapLayout />
 
             {/* Pin tiap kampanye */}
-            {filtered.map((loc) => (
-              <CircleMarker
-                key={loc.id}
-                center={[parseFloat(loc.lat), parseFloat(loc.lng)]}
-                radius={10}
-                pathOptions={{
-                  fillColor: STATUS_COLOR[loc.status] || '#6b7280',
-                  fillOpacity: 0.85,
-                  color: T.white,
-                  weight: 2,
-                }}
-              >
-                <Popup maxWidth={260}>
-                  <div style={{ fontFamily: 'inherit', padding: '4px 0' }}>
-                    {/* Badge status */}
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        marginBottom: 8,
-                        padding: '2px 8px',
-                        borderRadius: 99,
-                        fontSize: 11,
-                        fontWeight: 500,
-                        background: STATUS_COLOR[loc.status] + '20',
-                        color: STATUS_COLOR[loc.status],
-                      }}
-                    >
-                      {STATUS_LABEL[loc.status] || loc.status}
-                    </span>
+            {filtered.map((loc) => {
+              // Memaksa status menjadi huruf kecil agar cocok dengan key STATUS_COLOR & STATUS_LABEL
+              const currentStatus = loc.status ? loc.status.toLowerCase() : 'active';
 
-                    {/* Nama kampanye */}
-                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, lineHeight: 1.3 }}>{loc.title}</div>
+              return (
+                <CircleMarker
+                  key={loc.id}
+                  center={[parseFloat(loc.lat), parseFloat(loc.lng)]}
+                  radius={10}
+                  pathOptions={{
+                    fillColor: STATUS_COLOR[currentStatus] || '#6b7280',
+                    fillOpacity: 0.85,
+                    color: T.white,
+                    weight: 2,
+                  }}
+                >
+                  <Popup maxWidth={260}>
+                    <div style={{ fontFamily: 'inherit', padding: '4px 0' }}>
+                      {/* Badge status */}
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          marginBottom: 8,
+                          padding: '2px 8px',
+                          borderRadius: 99,
+                          fontSize: 11,
+                          fontWeight: 500,
+                          background: STATUS_COLOR[currentStatus] + '20',
+                          color: STATUS_COLOR[currentStatus],
+                        }}
+                      >
+                        {STATUS_LABEL[currentStatus] || loc.status}
+                      </span>
 
-                    {/* Kategori */}
-                    <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 10 }}>{loc.category || 'Umum'}</div>
+                      {/* Nama kampanye */}
+                      <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, lineHeight: 1.3 }}>{loc.title}</div>
 
-                    {/* Progress bar */}
-                    <div style={{ marginBottom: 10 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#6b7280', marginBottom: 3 }}>
-                        <span>Terkumpul</span>
-                        <span>{pct(parseFloat(loc.collected_amount || 0), parseFloat(loc.target_amount || 1))}%</span>
+                      {/* Kategori */}
+                      <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 10 }}>{loc.category || 'Umum'}</div>
+
+                      {/* Progress bar */}
+                      <div style={{ marginBottom: 10 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#6b7280', marginBottom: 3 }}>
+                          <span>Terkumpul</span>
+                          <span>{pct(parseFloat(loc.collected_amount || 0), parseFloat(loc.target_amount || 1))}%</span>
+                        </div>
+                        <div style={{ height: 5, background: '#f1efe8', borderRadius: 99, overflow: 'hidden' }}>
+                          <div
+                            style={{
+                              height: '100%',
+                              borderRadius: 99,
+                              background: STATUS_COLOR[currentStatus] || '#16a34a',
+                              width: `${Math.min(pct(parseFloat(loc.collected_amount || 0), parseFloat(loc.target_amount || 1)), 100)}%`,
+                            }}
+                          />
+                        </div>
                       </div>
-                      <div style={{ height: 5, background: '#f1efe8', borderRadius: 99, overflow: 'hidden' }}>
-                        <div
-                          style={{
-                            height: '100%',
-                            borderRadius: 99,
-                            background: STATUS_COLOR[loc.status] || '#16a34a',
-                            width: `${Math.min(pct(parseFloat(loc.collected_amount || 0), parseFloat(loc.target_amount || 1)), 100)}%`,
-                          }}
-                        />
+
+                      {/* Target */}
+                      <div style={{ fontSize: 12, marginBottom: 12 }}>
+                        <span style={{ color: '#6b7280' }}>Target: </span>
+                        <span style={{ fontWeight: 600 }}>{fmt(loc.target_amount)}</span>
                       </div>
-                    </div>
 
-                    {/* Target */}
-                    <div style={{ fontSize: 12, marginBottom: 12 }}>
-                      <span style={{ color: '#6b7280' }}>Target: </span>
-                      <span style={{ fontWeight: 600 }}>{fmt(loc.target_amount)}</span>
+                      {/* Tombol lihat detail */}
+                      <button
+                        onClick={() => {
+                          navigate(`/campaign-detail/${loc.id}`);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '7px 0',
+                          fontSize: 13,
+                          fontWeight: 500,
+                          borderRadius: 6,
+                          border: 'none',
+                          background: '#16a34a',
+                          color: T.white,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Lihat Detail →
+                      </button>
                     </div>
-
-                    {/* Tombol lihat detail */}
-                    {/* Ubah setPage menjadi navigate('/campaign-detail') */}
-                    <button
-                      onClick={() => {
-                        navigate(`/campaign-detail/${loc.id}`);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '7px 0',
-                        fontSize: 13,
-                        fontWeight: 500,
-                        borderRadius: 6,
-                        border: 'none',
-                        background: '#16a34a',
-                        color: T.white,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Lihat Detail →
-                    </button>
-                  </div>
-                </Popup>
-              </CircleMarker>
-            ))}
+                  </Popup>
+                </CircleMarker>
+              );
+            })}
           </MapContainer>
 
-          {/*  Legend  */}
+          {/* Legend  */}
           <div
             style={{
               position: 'absolute',
