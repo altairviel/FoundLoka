@@ -215,7 +215,8 @@ function CampaignsTab({ onToast, refreshStats }) {
   const FILTERS = ['all', 'pending', 'active', 'funded', 'rejected'];
   const FILTER_LABELS = { all: 'Semua', pending: 'Menunggu', active: 'Aktif', funded: 'Terdanai', rejected: 'Ditolak' };
   const filtered = filter === 'all' ? campaigns : campaigns.filter((c) => c.status === filter);
-
+  const pendingCount = campaigns.filter((c) => c.status === 'pending').length;
+  const fundedCount = campaigns.filter((c) => c.status === 'funded').length;
   return (
     <>
       {confirm && <ConfirmModal message={confirm.message} onConfirm={handleAction} onCancel={() => setConfirm(null)} />}
@@ -369,6 +370,17 @@ export default function AdminDashboard({ user }) {
   const [tab, setTab] = useState('overview');
   const [stats, setStats] = useState(null);
   const [loadingStats, setLoadingStats] = useState(true);
+
+  // FIX: Tambahkan state yang hilang
+  const [toast, setToast] = useState(null);
+  const [isOpenMobileMenu, setIsOpenMobileMenu] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchStats = async () => {
     try {
