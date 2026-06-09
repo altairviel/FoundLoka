@@ -2,7 +2,7 @@ import { T } from '../../tokens';
 import CampaignCard from '../components/CampaignCard';
 import { useState, useEffect } from 'react';
 import { getCampaigns } from '../services/campaign';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 import folkLokaLogo from '../assets/Folk Loka.png';
 import bannerImg from '../assets/banner.png';
 
@@ -38,7 +38,7 @@ function normalizeCampaign(c) {
 }
 
 export default function Landing({ role }) {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -152,7 +152,7 @@ export default function Landing({ role }) {
       <section className="ff-section" style={{ background: T.white, borderTop: T.border, borderBottom: T.border }}>
         <div className="ff-container">
           <div style={{ marginBottom: '2.5rem' }}>
-            <h2 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em' }}>Cara kerja FolkLoka</h2>
+            <h2 style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em' }}>Cara kerja FoundLoka</h2>
             <p style={{ color: T.gray500, marginTop: 6, fontSize: 14 }}>Sederhana, transparan, dan aman.</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px,1fr))', gap: '2rem' }}>
