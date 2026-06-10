@@ -1,33 +1,30 @@
 const { Pool } = require('pg');
-require('dotenv').config();
 
-const poolConfig = process.env.DATABASE_URL
-  ? {
-      connectionString: process.env.DATABASE_URL,
-      ssl: {
-        rejectUnauthorized: false,
-      },
-    }
-  : {
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
-      database: process.env.DB_NAME,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-    };
-
-const pool = new Pool(poolConfig);
-
-// === 🛑 TAMBAHKAN BLOK INI UNTUK MENANGKAP ERROR MENDADAK ===
-pool.on('error', (err, client) => {
-  console.error('Koneksi database Neon terputus secara mendadak:', err.message);
-  // Aplikasi tidak akan crash, pool otomatis menangani pembuatan ulang koneksi
+// Konfigurasi Pool
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  // Menangani masalah SSL (menghilangkan warning & meningkatkan kompatibilitas)
+  ssl: {
+    rejectUnauthorized: false, // Railway/cloud biasanya pakai self-signed cert, ini bypass validasi sertifikatnya
+  },
+  // Konfigurasi ketahanan koneksi
+  max: 20, // Maksimal koneksi
+  idleTimeoutMillis: 30000, // Tutup koneksi idle setelah 30 detik
+  connectionTimeoutMillis: 2000, // Gagal jika koneksi tidak terbuka dalam 2 detik
 });
-// ========================================================
 
-pool
-  .connect()
-  .then(() => console.log('Database FoundLoka terhubung!'))
-  .catch((err) => console.error('Gagal terhubung ke database:', err.message));
+// PENTING: Tambahkan ini agar aplikasi tidak crash saat koneksi error
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err);
+});
+
+// Tes koneksi saat aplikasi mulai
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('Database connection error:', err.stack);
+  } else {
+    console.log(' Database FoundLoka terhubung!');
+  }
+});
 
 module.exports = pool;
