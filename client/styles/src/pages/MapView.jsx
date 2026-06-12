@@ -62,7 +62,7 @@ export default function MapView() {
       <div style={{ padding: '1rem 1.5rem', background: T.white, borderBottom: T.border, display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
         <div>
           <h2 style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>Peta Ekonomi Komunitas</h2>
-          <p style={{ fontSize: 13, color: T.gray500, margin: 0 }}>{filtered.length} UMKM tersebar</p>
+          <p style={{ fontSize: 13, color: T.gray500, margin: 0 }}>{filtered.length} UMKM teesebar di berbagai daerah</p>
         </div>
 
         {/* Filter kategori */}

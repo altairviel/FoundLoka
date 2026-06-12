@@ -54,9 +54,9 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
     }
     if (step === 1) {
       if (!form.target_amount || isNaN(form.target_amount) || parseFloat(form.target_amount) < 1000000) return 'Target modal minimal Rp 1.000.000';
-      if (!form.return_rate || isNaN(form.return_rate) || parseFloat(form.return_rate) < 1 || parseFloat(form.return_rate) > 50) return 'Return rate harus antara 1% – 50%';
+      if (!form.return_rate || isNaN(form.return_rate) || parseFloat(form.return_rate) < 1 || parseFloat(form.return_rate) > 50) return 'Return rate harus antara 1% – 18%';
       if (form.repayment_type === 'cicilan') {
-        if (!form.tenor_months || isNaN(form.tenor_months) || parseInt(form.tenor_months) < 1 || parseInt(form.tenor_months) > 60) return 'Tenor harus antara 1 – 60 bulan';
+        if (!form.tenor_months || isNaN(form.tenor_months) || parseInt(form.tenor_months) < 1 || parseInt(form.tenor_months) > 60) return 'Tenor harus antara 1 – 15 bulan';
       }
     }
     if (step === 2) {
