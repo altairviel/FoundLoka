@@ -12,7 +12,6 @@ const STATUS_COLOR = {
   funded: '#2563eb',
   repaying: '#7c3aed',
   done: '#6b7280',
-  rejected: '#dc2626',
 };
 
 const STATUS_LABEL = {
@@ -20,7 +19,6 @@ const STATUS_LABEL = {
   funded: 'Terpenuhi',
   repaying: 'Cicilan Berjalan',
   done: 'Selesai',
-  rejected: 'Bermasalah',
 };
 
 const CATEGORIES = ['Semua', 'Kuliner', 'Fashion', 'Agrikultur', 'Kerajinan', 'Perikanan', 'Teknologi'];
