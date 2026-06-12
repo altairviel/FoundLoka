@@ -363,10 +363,9 @@ export default function CampaignDetail({ role }) {
               <div style={{ height: 1, background: T.gray200, margin: '1rem 0' }} />
 
               {[
-                ['Return', `${returnRate}${typeof returnRate === 'number' ? '%' : ''}/tahun`],
+                ['Return', `${returnRate} %`],
                 ['Tenor', `${tenor}${typeof tenor === 'number' ? ' bulan' : ''}`],
                 ['Est. cicilan/bln', monthly ? fmt(monthly) : '—'],
-                ['Risiko', c.risk || c.risk_level || '—'],
                 ['Investor', `${c.investor_count ?? investors.length} orang`],
                 ['Deadline', c.deadline ? new Date(c.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'],
               ].map(([k, v]) => (

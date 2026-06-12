@@ -141,7 +141,6 @@ function OverviewTab({ user, stats, loadingStats }) {
           <h3 style={{ fontWeight: 600, fontSize: 15, margin: '0 0 1rem' }}>Ringkasan Platform</h3>
           {[
             { label: 'Total Investasi (Transaksi)', value: s.total_investments_count ?? 0 },
-            { label: 'Total Penarikan', value: s.total_withdrawals != null ? fmt(s.total_withdrawals) : '—' },
             { label: 'Campaign Selesai (Repaying)', value: campaignsObj.repaying ?? 0 },
             { label: 'Campaign Ditolak', value: campaignsObj.rejected ?? 0 },
           ].map((item) => (

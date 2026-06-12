@@ -20,7 +20,7 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
     target_amount: '',
     return_rate: '',
     tenor_months: '',
-    repayment_type: 'cicilan', 
+    repayment_type: 'cicilan',
     deadline: '',
     address: '',
     lat: '',
@@ -45,7 +45,7 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
     setError('');
   };
 
-  // Validasi per step 
+  // Validasi per step
   const validate = () => {
     if (step === 0) {
       if (!form.title.trim()) return 'Nama usaha wajib diisi';
@@ -104,7 +104,7 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
     }
   };
 
-  // Style helpers 
+  // Style helpers
   const inputStyle = {
     width: '100%',
     padding: '10px 12px',
@@ -123,14 +123,14 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
     marginBottom: 6,
   };
 
-  //  Kalkulasi preview 
+  //  Kalkulasi preview
   const targetNum = parseFloat(form.target_amount) || 0;
   const rateNum = parseFloat(form.return_rate) || 0;
   const tenorNum = parseInt(form.tenor_months) || 1;
   const totalReturn = targetNum > 0 ? Math.round(targetNum * (1 + rateNum / 100)) : 0;
   const monthlyAmt = form.repayment_type === 'cicilan' && tenorNum > 0 ? Math.round(totalReturn / tenorNum) : 0;
 
-  //  Halaman sukses 
+  //  Halaman sukses
   if (success)
     return (
       <div style={{ background: T.gray50, minHeight: 'calc(100vh - 56px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
@@ -293,7 +293,7 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
               {/* Return rate */}
               <div>
                 <label style={labelStyle}>
-                  Return Rate (% per tahun) <span style={{ color: '#EF4444' }}>*</span>
+                  Return Rate (%) <span style={{ color: '#EF4444' }}>*</span>
                 </label>
                 <input style={inputStyle} type="number" min={1} max={50} step={0.5} value={form.return_rate} onChange={set('return_rate')} placeholder="Contoh: 15" />
                 <div style={{ fontSize: 12, color: T.gray500, marginTop: 4 }}>Berapa % dari modal yang akan kamu kembalikan di atas pokok. Range: 1% – 50%</div>

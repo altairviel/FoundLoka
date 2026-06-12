@@ -347,7 +347,7 @@ export default function Navbar({ role, user, onLogout }) {
                   }}
                   style={{ display: 'block', width: '100%', padding: '10px 16px', fontSize: 14, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', color: T.gray700 }}
                 >
-                  👤 Profil Saya
+                  Profil Saya
                 </button>
                 <div style={{ borderTop: T.border }} />
                 <button
@@ -357,7 +357,7 @@ export default function Navbar({ role, user, onLogout }) {
                   }}
                   style={{ display: 'block', width: '100%', padding: '10px 16px', fontSize: 14, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', color: '#DC2626' }}
                 >
-                  📤 Keluar
+                  Keluar
                 </button>
               </div>
             )}
