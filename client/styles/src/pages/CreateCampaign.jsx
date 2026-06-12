@@ -295,8 +295,8 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
                 <label style={labelStyle}>
                   Return Rate (%) <span style={{ color: '#EF4444' }}>*</span>
                 </label>
-                <input style={inputStyle} type="number" min={1} max={50} step={0.5} value={form.return_rate} onChange={set('return_rate')} placeholder="Contoh: 15" />
-                <div style={{ fontSize: 12, color: T.gray500, marginTop: 4 }}>Berapa % dari modal yang akan kamu kembalikan di atas pokok. Range: 1% – 50%</div>
+                <input style={inputStyle} type="number" min={1} max={18} step={0.5} value={form.return_rate} onChange={set('return_rate')} placeholder="Contoh: 15" />
+                <div style={{ fontSize: 12, color: T.gray500, marginTop: 4 }}>Berapa % dari modal yang akan kamu kembalikan di atas pokok. Range: 1% – 18%</div>
               </div>
 
               {/*  JENIS PENGEMBALIAN  */}
