@@ -8,7 +8,6 @@ import UMKMDashboard from './pages/Umkmdashboard';
 import CampaignPage from './pages/Campaignpage';
 import CampaignDetail from './pages/CampaignDetail';
 import CreateCampaign from './pages/CreateCampaign';
-import Installments from './pages/Installments';
 import Profile from './pages/Profile';
 import MapView from './pages/MapView';
 import AdminDashboard from './pages/Admindashboard';
@@ -71,7 +70,6 @@ export default function App() {
         <Route path="/umkm" element={role === 'owner' ? <UMKMDashboard user={user} /> : <Navigate to="/" />} />
         <Route path="/umkm/:tab" element={role === 'owner' ? <UMKMDashboard user={user} /> : <Navigate to="/" />} />
         <Route path="/create-campaign" element={role === 'owner' ? <CreateCampaign user={user} onSuccess={() => navigate('/umkm')} onCancel={() => navigate('/umkm')} /> : <Navigate to="/" />} />
-        <Route path="/installments" element={role === 'owner' ? <Installments onBack={() => navigate('/umkm')} /> : <Navigate to="/" />} />
 
         {/* Proteksi Rute Khusus Investor */}
         <Route path="/investor" element={role === 'investor' ? <InvestorDashboard user={user} setSelectedCampaign={setSelectedCampaign} /> : <Navigate to="/" />} />

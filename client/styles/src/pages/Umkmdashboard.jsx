@@ -8,6 +8,7 @@ import { getMyCampaign } from '../services/campaign';
 import { getTransactions } from '../services/user';
 import { fmt, pct } from '../utils/format';
 import api from '../services/api';
+import Installments from './Installments'; // <-- Tambahan import ini
 
 const SIDEBAR_LINKS = [
   { id: 'overview',     icon: '⊡', label: 'Ringkasan' },
@@ -623,9 +624,8 @@ export default function UMKMDashboard({ user }) {
   }, []);
 
   const handleNavigation = (id) => {
-    if (id === 'installments') {
-      navigate('/installments');
-    } else if (id === 'overview') {
+    // KODE YANG DIUBAH: Hilangkan kondisi khusus "installments"
+    if (id === 'overview') {
       navigate('/umkm');
     } else {
       navigate(`/umkm/${id}`);
@@ -732,9 +732,10 @@ export default function UMKMDashboard({ user }) {
         flex: 1, padding: isMobile ? '1rem' : '2rem',
         background: T.gray50, overflow: 'auto', width: '100%',
       }}>
-        {tab === 'overview' && <Overview user={user} campaign={campaign} transactions={transactions} loading={loading} navigate={navigate} />}
-        {tab === 'campaign' && <CampaignTab campaigns={campaigns} loading={loading} navigate={navigate} />}
-        {tab === 'dana'     && <DanaTab campaign={campaign} onToast={showToast} />}
+        {tab === 'overview'     && <Overview user={user} campaign={campaign} transactions={transactions} loading={loading} navigate={navigate} />}
+        {tab === 'campaign'     && <CampaignTab campaigns={campaigns} loading={loading} navigate={navigate} />}
+        {tab === 'dana'         && <DanaTab campaign={campaign} onToast={showToast} />}
+        {tab === 'installments' && <Installments />} {/* KODE YANG DIUBAH: Tambahkan baris ini */}
       </main>
     </div>
   );
