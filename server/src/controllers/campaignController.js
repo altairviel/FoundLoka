@@ -34,7 +34,7 @@ const getCampaigns = async (req, res) => {
 
   try {
     const params = [];
-    let where = `WHERE c.status = 'active'`;
+    let where = `WHERE c.status IN ('active', 'funded', 'repaying', 'done')`;
 
     //filter kategori klw ada
     if (category) {
@@ -168,7 +168,7 @@ const getMapData = async (req, res) => {
       SELECT id, title, category, status, lat, lng,
              collected_amount, target_amount
       FROM campaigns
-      WHERE status IN ('active', 'funded', 'repaying')
+      WHERE status IN ('active', 'funded', 'repaying', 'done')
     `);
     res.json({ locations: result.rows });
   } catch (err) {
