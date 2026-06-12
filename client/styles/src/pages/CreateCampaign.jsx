@@ -356,8 +356,8 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
                   <label style={labelStyle}>
                     Tenor (bulan) <span style={{ color: '#EF4444' }}>*</span>
                   </label>
-                  <input style={inputStyle} type="number" min={1} max={60} value={form.tenor_months} onChange={set('tenor_months')} placeholder="Contoh: 12" />
-                  <div style={{ fontSize: 12, color: T.gray500, marginTop: 4 }}>Durasi cicilan: 1 – 60 bulan</div>
+                  <input style={inputStyle} type="number" min={1} max={15} value={form.tenor_months} onChange={set('tenor_months')} placeholder="Contoh: 12" />
+                  <div style={{ fontSize: 12, color: T.gray500, marginTop: 4 }}>Durasi cicilan: 1 – 15 bulan</div>
                 </div>
               )}
 
