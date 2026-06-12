@@ -11,19 +11,13 @@ import api from '../services/api';
 import Installments from './Installments'; // <-- Tambahan import ini
 
 const SIDEBAR_LINKS = [
-  { id: 'overview',     icon: '⊡', label: 'Ringkasan' },
-  { id: 'campaign',     icon: '◈', label: 'Campaign Saya' },
+  { id: 'overview', icon: '⊡', label: 'Ringkasan' },
+  { id: 'campaign', icon: '◈', label: 'Campaign Saya' },
   { id: 'installments', icon: '⊞', label: 'Installment' },
-  { id: 'dana',         icon: '⬡', label: 'Dana & Kewajiban' },
+  { id: 'dana', icon: '⬡', label: 'Dana & Kewajiban' },
 ];
 
-const MILESTONES = [
-  { label: 'Dokumen diserahkan' },
-  { label: 'Verifikasi lapangan' },
-  { label: 'Campaign tayang' },
-  { label: 'Target tercapai' },
-  { label: 'Dana dicairkan' },
-];
+const MILESTONES = [{ label: 'Dokumen diserahkan' }, { label: 'Verifikasi lapangan' }, { label: 'Campaign tayang' }, { label: 'Target tercapai' }, { label: 'Dana dicairkan' }];
 
 // Helpers
 function LoadingRow({ cols = 4 }) {
@@ -40,17 +34,24 @@ function LoadingRow({ cols = 4 }) {
 
 function EmptyState({ navigate }) {
   return (
-    <div style={{
-      display: 'flex', justifyContent: 'center', alignItems: 'center',
-      minHeight: 350, flexDirection: 'column', gap: '1rem',
-      background: T.white, borderRadius: 12,
-      border: `1px solid ${T.gray200}`, padding: '2rem', textAlign: 'center',
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: 350,
+        flexDirection: 'column',
+        gap: '1rem',
+        background: T.white,
+        borderRadius: 12,
+        border: `1px solid ${T.gray200}`,
+        padding: '2rem',
+        textAlign: 'center',
+      }}
+    >
       <div style={{ fontSize: 48 }}>🏪</div>
       <h2 style={{ fontWeight: 600, fontSize: 18, margin: 0 }}>Belum ada campaign</h2>
-      <p style={{ color: T.gray500, fontSize: 14, maxWidth: 300, margin: 0 }}>
-        Ajukan campaign baru untuk mulai mencari pendanaan dari investor.
-      </p>
+      <p style={{ color: T.gray500, fontSize: 14, maxWidth: 300, margin: 0 }}>Ajukan campaign baru untuk mulai mencari pendanaan dari investor.</p>
       <button className="ff-btn ff-btn-primary" onClick={() => navigate('/create-campaign')}>
         + Ajukan Campaign
       </button>
@@ -62,18 +63,14 @@ function EmptyState({ navigate }) {
 function Overview({ user, campaign, transactions, loading, navigate }) {
   const targetVal = campaign ? parseFloat(campaign.target_amount || 0) : 0;
   const raisedVal = campaign ? parseFloat(campaign.collected_amount || campaign.raised || 0) : 0;
-  const progress  = campaign ? pct(raisedVal, targetVal > 0 ? targetVal : 1) : 0;
+  const progress = campaign ? pct(raisedVal, targetVal > 0 ? targetVal : 1) : 0;
   const investors = campaign?.investor_count || campaign?.investors || 0;
 
   return (
     <>
       <div style={{ marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: 22, fontWeight: 600, margin: '0 0 4px' }}>
-          Selamat datang, {user?.name?.split(' ')[0] || 'Pemilik'} 👋
-        </h2>
-        <p style={{ fontSize: 14, color: T.gray500, margin: 0 }}>
-          {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-        </p>
+        <h2 style={{ fontSize: 22, fontWeight: 600, margin: '0 0 4px' }}>Selamat datang, {user?.name?.split(' ')[0] || 'Pemilik'} 👋</h2>
+        <p style={{ fontSize: 14, color: T.gray500, margin: 0 }}>{new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
       </div>
 
       {!campaign ? (
@@ -81,30 +78,22 @@ function Overview({ user, campaign, transactions, loading, navigate }) {
       ) : (
         <>
           <div className="ff-grid-4" style={{ marginBottom: '1.5rem' }}>
-            <StatCard label="Dana Terkumpul"  value={fmt(raisedVal)} accent />
+            <StatCard label="Dana Terkumpul" value={fmt(raisedVal)} accent />
             <StatCard label="Target Campaign" value={fmt(targetVal)} />
             <StatCard label="Jumlah Investor" value={`${investors} orang`} />
-            <StatCard label="Progress"        value={`${progress}%`} />
+            <StatCard label="Progress" value={`${progress}%`} />
           </div>
 
           <div className="ff-card" style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
               <div>
-                <h3 style={{ fontWeight: 600, fontSize: 17, margin: '0 0 4px' }}>
-                  {campaign.title || campaign.name || '—'}
-                </h3>
+                <h3 style={{ fontWeight: 600, fontSize: 17, margin: '0 0 4px' }}>{campaign.title || campaign.name || '—'}</h3>
                 <p style={{ fontSize: 13, color: T.gray500, margin: 0 }}>
                   {campaign.category || campaign.sector || '—'} · {campaign.location || '—'}
                 </p>
               </div>
-              <span className={`ff-badge ${
-                campaign.status === 'active'   ? 'ff-badge-green' :
-                campaign.status === 'rejected' ? 'ff-badge-red'   : 'ff-badge-gray'
-              }`}>
-                {campaign.status === 'active'   ? 'Aktif' :
-                 campaign.status === 'pending'  ? 'Menunggu' :
-                 campaign.status === 'rejected' ? 'Ditolak' :
-                 campaign.status || '—'}
+              <span className={`ff-badge ${campaign.status === 'active' ? 'ff-badge-green' : campaign.status === 'rejected' ? 'ff-badge-red' : 'ff-badge-gray'}`}>
+                {campaign.status === 'active' ? 'Aktif' : campaign.status === 'pending' ? 'Menunggu' : campaign.status === 'rejected' ? 'Ditolak' : campaign.status || '—'}
               </span>
             </div>
             <ProgressBar value={progress} />
@@ -122,18 +111,35 @@ function Overview({ user, campaign, transactions, loading, navigate }) {
                 return (
                   <div key={i} style={{ flex: 1, textAlign: 'center', position: 'relative' }}>
                     {i < MILESTONES.length - 1 && (
-                      <div style={{
-                        position: 'absolute', top: 12, left: '50%', width: '100%',
-                        height: 2, background: done ? T.green : T.gray200, zIndex: 0,
-                      }} />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 12,
+                          left: '50%',
+                          width: '100%',
+                          height: 2,
+                          background: done ? T.green : T.gray200,
+                          zIndex: 0,
+                        }}
+                      />
                     )}
-                    <div style={{
-                      width: 24, height: 24, borderRadius: '50%', margin: '0 auto 8px',
-                      background: done ? T.green : T.gray200,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 12, color: done ? T.white : T.gray500,
-                      position: 'relative', zIndex: 1, fontWeight: 700,
-                    }}>
+                    <div
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        margin: '0 auto 8px',
+                        background: done ? T.green : T.gray200,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 12,
+                        color: done ? T.white : T.gray500,
+                        position: 'relative',
+                        zIndex: 1,
+                        fontWeight: 700,
+                      }}
+                    >
                       {done ? '✓' : i + 1}
                     </div>
                     <div style={{ fontSize: 11, color: done ? T.greenDark : T.gray500, lineHeight: 1.3 }}>{m.label}</div>
@@ -147,15 +153,19 @@ function Overview({ user, campaign, transactions, loading, navigate }) {
             <h3 style={{ fontWeight: 600, marginBottom: '1rem', fontSize: 15 }}>Investasi Terbaru</h3>
             {Array.isArray(transactions) && transactions.length > 0 ? (
               transactions.slice(0, 3).map((t, i) => (
-                <div key={i} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '10px 0', borderBottom: i < 2 ? `1px solid ${T.gray100}` : 'none',
-                }}>
+                <div
+                  key={i}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '10px 0',
+                    borderBottom: i < 2 ? `1px solid ${T.gray100}` : 'none',
+                  }}
+                >
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 500 }}>{t.investor_name || t.name || 'Investor'}</div>
-                    <div style={{ fontSize: 12, color: T.gray500 }}>
-                      {t.created_at ? new Date(t.created_at).toLocaleDateString('id-ID') : '—'}
-                    </div>
+                    <div style={{ fontSize: 12, color: T.gray500 }}>{t.created_at ? new Date(t.created_at).toLocaleDateString('id-ID') : '—'}</div>
                   </div>
                   <div style={{ fontWeight: 600, color: T.green }}>{fmt(parseFloat(t.amount) || 0)}</div>
                 </div>
@@ -188,7 +198,7 @@ function CampaignTab({ campaigns, loading, navigate }) {
         {campaigns.map((campaign) => {
           const targetVal = parseFloat(campaign.target_amount || 0);
           const raisedVal = parseFloat(campaign.collected_amount || campaign.raised || 0);
-          const progress  = pct(raisedVal, targetVal > 0 ? targetVal : 1);
+          const progress = pct(raisedVal, targetVal > 0 ? targetVal : 1);
 
           return (
             <div key={campaign.id} className="ff-card">
@@ -197,35 +207,27 @@ function CampaignTab({ campaigns, loading, navigate }) {
                   <h3 style={{ fontWeight: 700, fontSize: 18, margin: '0 0 6px' }}>{campaign.title || campaign.name}</h3>
                   <p style={{ color: T.gray500, fontSize: 13, margin: 0 }}>{campaign.description || '—'}</p>
                 </div>
-                <span className={`ff-badge ${
-                  campaign.status === 'active'   ? 'ff-badge-green' :
-                  campaign.status === 'rejected' ? 'ff-badge-red'   : 'ff-badge-gray'
-                }`}>
-                  {campaign.status === 'active'   ? 'Aktif' :
-                   campaign.status === 'pending'  ? 'Menunggu Verifikasi' :
-                   campaign.status === 'rejected' ? 'Ditolak' :
-                   campaign.status || '—'}
+                <span className={`ff-badge ${campaign.status === 'active' ? 'ff-badge-green' : campaign.status === 'rejected' ? 'ff-badge-red' : 'ff-badge-gray'}`}>
+                  {campaign.status === 'active' ? 'Aktif' : campaign.status === 'pending' ? 'Menunggu Verifikasi' : campaign.status === 'rejected' ? 'Ditolak' : campaign.status || '—'}
                 </span>
               </div>
 
               <div className="ff-grid-2" style={{ marginBottom: '1.5rem' }}>
-                <StatCard label="Dana Terkumpul"  value={fmt(raisedVal)} accent />
-                <StatCard label="Target"          value={fmt(targetVal)} />
+                <StatCard label="Dana Terkumpul" value={fmt(raisedVal)} accent />
+                <StatCard label="Target" value={fmt(targetVal)} />
               </div>
 
               <ProgressBar value={progress} />
-              <div style={{ textAlign: 'right', marginTop: 6, fontSize: 13, color: T.gray500 }}>
-                {progress}% tercapai
-              </div>
+              <div style={{ textAlign: 'right', marginTop: 6, fontSize: 13, color: T.gray500 }}>{progress}% tercapai</div>
 
               <div style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                 {[
-                  { label: 'Kategori',   value: campaign.category || campaign.sector || '—' },
-                  { label: 'Lokasi',     value: campaign.location || campaign.address || '—' },
-                  { label: 'Return/th',  value: campaign.return_rate != null ? `${campaign.return_rate}%` : '—' },
-                  { label: 'Tenor',      value: campaign.tenor_months != null ? `${campaign.tenor_months} bulan` : '—' },
-                  { label: 'Investor',   value: `${campaign.investor_count || 0} orang` },
-                  { label: 'Dibuat',     value: campaign.created_at ? new Date(campaign.created_at).toLocaleDateString('id-ID') : '—' },
+                  { label: 'Kategori', value: campaign.category || campaign.sector || '—' },
+                  { label: 'Lokasi', value: campaign.location || campaign.address || '—' },
+                  { label: 'Return/th', value: campaign.return_rate != null ? `${campaign.return_rate}%` : '—' },
+                  { label: 'Tenor', value: campaign.tenor_months != null ? `${campaign.tenor_months} bulan` : '—' },
+                  { label: 'Investor', value: `${campaign.investor_count || 0} orang` },
+                  { label: 'Dibuat', value: campaign.created_at ? new Date(campaign.created_at).toLocaleDateString('id-ID') : '—' },
                 ].map((item) => (
                   <div key={item.label} style={{ padding: '12px', background: T.gray50, borderRadius: 8 }}>
                     <div style={{ fontSize: 11, color: T.gray500, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</div>
@@ -244,9 +246,9 @@ function CampaignTab({ campaigns, loading, navigate }) {
 // Dana & Kewajiban Tab
 function DanaTab({ campaign, onToast }) {
   const [installments, setInstallments] = useState([]);
-  const [summary, setSummary]           = useState(null);
-  const [loading, setLoading]           = useState(true);
-  const [payLoading, setPayLoading]     = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [payLoading, setPayLoading] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
 
   const fetchInstallments = useCallback(async () => {
@@ -258,12 +260,12 @@ function DanaTab({ campaign, onToast }) {
       // hitung summary lokal
       const list = data.installments || [];
       setSummary({
-        total:   list.length,
-        paid:    list.filter((i) => i.status === 'paid').length,
+        total: list.length,
+        paid: list.filter((i) => i.status === 'paid').length,
         pending: list.filter((i) => i.status === 'pending').length,
-        late:    list.filter((i) => i.status === 'late').length,
-        totalAmount:   list.reduce((a, b) => a + parseFloat(b.amount || 0), 0),
-        paidAmount:    list.filter((i) => i.status === 'paid').reduce((a, b) => a + parseFloat(b.amount || 0), 0),
+        late: list.filter((i) => i.status === 'late').length,
+        totalAmount: list.reduce((a, b) => a + parseFloat(b.amount || 0), 0),
+        paidAmount: list.filter((i) => i.status === 'paid').reduce((a, b) => a + parseFloat(b.amount || 0), 0),
         remainingAmount: list.filter((i) => i.status !== 'paid').reduce((a, b) => a + parseFloat(b.amount || 0), 0),
       });
     } catch (err) {
@@ -278,7 +280,9 @@ function DanaTab({ campaign, onToast }) {
     }
   }, []);
 
-  useEffect(() => { fetchInstallments(); }, [fetchInstallments]);
+  useEffect(() => {
+    fetchInstallments();
+  }, [fetchInstallments]);
 
   const handlePay = async (id, monthNumber) => {
     setPayLoading(id);
@@ -294,20 +298,20 @@ function DanaTab({ campaign, onToast }) {
   };
 
   const statusBadge = (s) => {
-    if (s === 'paid')    return <span className="ff-badge ff-badge-green">Lunas</span>;
-    if (s === 'late')    return <span className="ff-badge ff-badge-red">Terlambat</span>;
-    return                      <span className="ff-badge ff-badge-yellow">Belum Bayar</span>;
+    if (s === 'paid') return <span className="ff-badge ff-badge-green">Lunas</span>;
+    if (s === 'late') return <span className="ff-badge ff-badge-red">Terlambat</span>;
+    return <span className="ff-badge ff-badge-yellow">Belum Bayar</span>;
   };
 
   const isDisbursed = campaign?.status === 'repaying' || campaign?.status === 'done';
-  const filtered    = filterStatus === 'all' ? installments : installments.filter((i) => i.status === filterStatus);
+  const filtered = filterStatus === 'all' ? installments : installments.filter((i) => i.status === filterStatus);
 
   // Belum dicairkan
   if (!loading && !isDisbursed && installments.length === 0) {
     const statusLabel = {
-      pending:  { icon: '⏳', text: 'Campaign masih dalam proses persetujuan admin.', color: '#92400E', bg: '#FFFBEB', border: '#FDE68A' },
-      active:   { icon: '🚀', text: 'Campaign sedang aktif mencari pendanaan dari investor.', color: '#1E40AF', bg: '#EFF6FF', border: '#BFDBFE' },
-      funded:   { icon: '✅', text: 'Campaign sudah fully funded! Menunggu admin mencairkan dana.', color: '#065F46', bg: '#ECFDF5', border: '#6EE7B7' },
+      pending: { icon: '⏳', text: 'Campaign masih dalam proses persetujuan admin.', color: '#92400E', bg: '#FFFBEB', border: '#FDE68A' },
+      active: { icon: '🚀', text: 'Campaign sedang aktif mencari pendanaan dari investor.', color: '#1E40AF', bg: '#EFF6FF', border: '#BFDBFE' },
+      funded: { icon: '✅', text: 'Campaign sudah fully funded! Menunggu admin mencairkan dana.', color: '#065F46', bg: '#ECFDF5', border: '#6EE7B7' },
       rejected: { icon: '❌', text: 'Campaign ditolak admin.', color: '#991B1B', bg: '#FEF2F2', border: '#FECACA' },
     };
     const info = statusLabel[campaign?.status] || { icon: '📋', text: 'Belum ada data campaign.', color: T.gray500, bg: T.gray50, border: T.gray200 };
@@ -317,14 +321,18 @@ function DanaTab({ campaign, onToast }) {
         <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: '1.5rem' }}>Dana & Kewajiban</h2>
 
         {/* Status card */}
-        <div style={{
-          background: info.bg, border: `1px solid ${info.border}`,
-          borderRadius: 12, padding: '2rem', textAlign: 'center', marginBottom: '1.5rem',
-        }}>
+        <div
+          style={{
+            background: info.bg,
+            border: `1px solid ${info.border}`,
+            borderRadius: 12,
+            padding: '2rem',
+            textAlign: 'center',
+            marginBottom: '1.5rem',
+          }}
+        >
           <div style={{ fontSize: 48, marginBottom: 12 }}>{info.icon}</div>
-          <h3 style={{ fontWeight: 600, fontSize: 16, color: info.color, margin: '0 0 8px' }}>
-            Cicilan belum tersedia
-          </h3>
+          <h3 style={{ fontWeight: 600, fontSize: 16, color: info.color, margin: '0 0 8px' }}>Cicilan belum tersedia</h3>
           <p style={{ fontSize: 14, color: info.color, margin: 0 }}>{info.text}</p>
         </div>
 
@@ -332,25 +340,31 @@ function DanaTab({ campaign, onToast }) {
         <div className="ff-card">
           <h3 style={{ fontWeight: 600, fontSize: 15, margin: '0 0 1.25rem' }}>Alur Pencairan & Cicilan</h3>
           {[
-            { step: 1, label: 'Campaign diajukan',         desc: 'Pemilik UMKM mengajukan campaign ke platform',           done: true },
-            { step: 2, label: 'Persetujuan admin',          desc: 'Admin mereview dan menyetujui campaign',                done: ['active','funded','repaying','done'].includes(campaign?.status) },
-            { step: 3, label: 'Pendanaan investor',         desc: 'Investor menyuntikkan modal hingga target terpenuhi',   done: ['funded','repaying','done'].includes(campaign?.status) },
-            { step: 4, label: 'Pencairan oleh admin',       desc: 'Admin mencairkan dana — cicilan otomatis dibuat',       done: ['repaying','done'].includes(campaign?.status) },
-            { step: 5, label: 'Pembayaran cicilan',         desc: 'UMKM membayar cicilan bulanan kepada investor',         done: campaign?.status === 'done' },
+            { step: 1, label: 'Campaign diajukan', desc: 'Pemilik UMKM mengajukan campaign ke platform', done: true },
+            { step: 2, label: 'Persetujuan admin', desc: 'Admin mereview dan menyetujui campaign', done: ['active', 'funded', 'repaying', 'done'].includes(campaign?.status) },
+            { step: 3, label: 'Pendanaan investor', desc: 'Investor menyuntikkan modal hingga target terpenuhi', done: ['funded', 'repaying', 'done'].includes(campaign?.status) },
+            { step: 4, label: 'Pencairan oleh admin', desc: 'Admin mencairkan dana — cicilan otomatis dibuat', done: ['repaying', 'done'].includes(campaign?.status) },
+            { step: 5, label: 'Pembayaran cicilan', desc: 'UMKM membayar cicilan bulanan kepada investor', done: campaign?.status === 'done' },
           ].map((s, i, arr) => (
             <div key={s.step} style={{ display: 'flex', gap: 14, marginBottom: i < arr.length - 1 ? 0 : 0 }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: '50%',
-                  background: s.done ? T.green : T.gray200,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 700, color: s.done ? T.white : T.gray500,
-                }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    background: s.done ? T.green : T.gray200,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: s.done ? T.white : T.gray500,
+                  }}
+                >
                   {s.done ? '✓' : s.step}
                 </div>
-                {i < arr.length - 1 && (
-                  <div style={{ width: 2, flex: 1, minHeight: 28, background: s.done ? T.green : T.gray200 }} />
-                )}
+                {i < arr.length - 1 && <div style={{ width: 2, flex: 1, minHeight: 28, background: s.done ? T.green : T.gray200 }} />}
               </div>
               <div style={{ paddingBottom: i < arr.length - 1 ? 20 : 0, paddingTop: 4 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: s.done ? T.gray900 : T.gray500 }}>{s.label}</div>
@@ -365,8 +379,8 @@ function DanaTab({ campaign, onToast }) {
 
   // Sudah ada cicilan
   const disbursedAmount = campaign ? parseFloat(campaign.collected_amount || 0) : 0;
-  const returnRate      = campaign?.return_rate || 0;
-  const tenorMonths     = campaign?.tenor_months || 0;
+  const returnRate = campaign?.return_rate || 0;
+  const tenorMonths = campaign?.tenor_months || 0;
 
   return (
     <>
@@ -380,11 +394,19 @@ function DanaTab({ campaign, onToast }) {
       </div>
 
       {/* Info banner dana cair */}
-      <div style={{
-        background: 'linear-gradient(135deg, #065F46 0%, #1a7a4a 100%)',
-        borderRadius: 12, padding: '1.5rem', marginBottom: '1.5rem',
-        color: T.white, display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center',
-      }}>
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #065F46 0%, #1a7a4a 100%)',
+          borderRadius: 12,
+          padding: '1.5rem',
+          marginBottom: '1.5rem',
+          color: T.white,
+          display: 'flex',
+          gap: '1.5rem',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+        }}
+      >
         <div style={{ fontSize: 40 }}>💰</div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 4 }}>DANA YANG DICAIRKAN</div>
@@ -422,9 +444,7 @@ function DanaTab({ campaign, onToast }) {
           </div>
           <div className="ff-card" style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 12, color: T.gray500, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sisa Kewajiban</div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: summary.late > 0 ? '#DC2626' : '#D97706' }}>
-              {fmt(summary.remainingAmount)}
-            </div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: summary.late > 0 ? '#DC2626' : '#D97706' }}>{fmt(summary.remainingAmount)}</div>
             <div style={{ fontSize: 12, color: T.gray500, marginTop: 4 }}>
               {summary.late > 0 && <span style={{ color: '#DC2626', fontWeight: 600 }}>⚠ {summary.late} terlambat · </span>}
               {summary.pending} belum dibayar
@@ -438,19 +458,23 @@ function DanaTab({ campaign, onToast }) {
         <div className="ff-card" style={{ marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <span style={{ fontSize: 14, fontWeight: 600 }}>Progress Pelunasan</span>
-            <span style={{ fontSize: 14, fontWeight: 700, color: T.green }}>
-              {Math.round((summary.paid / summary.total) * 100)}%
-            </span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: T.green }}>{Math.round((summary.paid / summary.total) * 100)}%</span>
           </div>
           <div style={{ height: 10, background: T.gray100, borderRadius: 99 }}>
-            <div style={{
-              width: `${Math.round((summary.paid / summary.total) * 100)}%`,
-              height: '100%', background: T.green, borderRadius: 99,
-              transition: 'width 0.5s ease',
-            }} />
+            <div
+              style={{
+                width: `${Math.round((summary.paid / summary.total) * 100)}%`,
+                height: '100%',
+                background: T.green,
+                borderRadius: 99,
+                transition: 'width 0.5s ease',
+              }}
+            />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 12, color: T.gray500 }}>
-            <span>{summary.paid} dari {summary.total} cicilan lunas</span>
+            <span>
+              {summary.paid} dari {summary.total} cicilan lunas
+            </span>
             <span>{summary.total - summary.paid} sisa</span>
           </div>
         </div>
@@ -467,8 +491,8 @@ function DanaTab({ campaign, onToast }) {
                 onClick={() => setFilterStatus(f)}
                 className="ff-btn ff-btn-sm"
                 style={{
-                  background:  filterStatus === f ? T.green : T.white,
-                  color:       filterStatus === f ? T.white : T.gray700,
+                  background: filterStatus === f ? T.green : T.white,
+                  color: filterStatus === f ? T.white : T.gray700,
                   borderColor: filterStatus === f ? T.green : T.gray200,
                   fontSize: 12,
                 }}
@@ -487,61 +511,35 @@ function DanaTab({ campaign, onToast }) {
                 <th>Jumlah</th>
                 <th>Status</th>
                 <th>Tanggal Bayar</th>
-                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {loading
-                ? [1, 2, 3, 4].map((i) => <LoadingRow key={i} cols={6} />)
-                : filtered.length === 0
-                  ? (
-                    <tr>
-                      <td colSpan={6} style={{ textAlign: 'center', color: T.gray500, padding: '2rem' }}>
-                        Tidak ada cicilan{filterStatus !== 'all' ? ' dengan filter ini' : ''}.
+              {loading ? (
+                [1, 2, 3, 4].map((i) => <LoadingRow key={i} cols={6} />)
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', color: T.gray500, padding: '2rem' }}>
+                    Tidak ada cicilan{filterStatus !== 'all' ? ' dengan filter ini' : ''}.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((ins) => {
+                  const isLate = ins.status === 'late' || (ins.status === 'pending' && new Date(ins.due_date) < new Date());
+                  const effectiveStatus = isLate && ins.status !== 'paid' ? 'late' : ins.status;
+                  return (
+                    <tr key={ins.id} style={{ background: effectiveStatus === 'late' ? '#FFF5F5' : 'inherit' }}>
+                      <td style={{ fontWeight: 700, color: T.gray900 }}>Bulan {ins.month_number}</td>
+                      <td style={{ fontSize: 13, color: effectiveStatus === 'late' ? '#DC2626' : T.gray700, fontWeight: effectiveStatus === 'late' ? 600 : 400 }}>
+                        {ins.due_date ? new Date(ins.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                        {effectiveStatus === 'late' && <span style={{ marginLeft: 6, fontSize: 11 }}>⚠</span>}
                       </td>
+                      <td style={{ fontWeight: 600, color: T.gray900 }}>{fmt(parseFloat(ins.amount || 0))}</td>
+                      <td>{statusBadge(effectiveStatus)}</td>
+                      <td style={{ fontSize: 13, color: T.gray500 }}>{ins.paid_at ? new Date(ins.paid_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</td>
                     </tr>
-                  )
-                  : filtered.map((ins) => {
-                    const isLate    = ins.status === 'late' || (ins.status === 'pending' && new Date(ins.due_date) < new Date());
-                    const effectiveStatus = isLate && ins.status !== 'paid' ? 'late' : ins.status;
-                    return (
-                      <tr key={ins.id} style={{ background: effectiveStatus === 'late' ? '#FFF5F5' : 'inherit' }}>
-                        <td style={{ fontWeight: 700, color: T.gray900 }}>
-                          Bulan {ins.month_number}
-                        </td>
-                        <td style={{ fontSize: 13, color: effectiveStatus === 'late' ? '#DC2626' : T.gray700, fontWeight: effectiveStatus === 'late' ? 600 : 400 }}>
-                          {ins.due_date ? new Date(ins.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
-                          {effectiveStatus === 'late' && <span style={{ marginLeft: 6, fontSize: 11 }}>⚠</span>}
-                        </td>
-                        <td style={{ fontWeight: 600, color: T.gray900 }}>{fmt(parseFloat(ins.amount || 0))}</td>
-                        <td>{statusBadge(effectiveStatus)}</td>
-                        <td style={{ fontSize: 13, color: T.gray500 }}>
-                          {ins.paid_at ? new Date(ins.paid_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
-                        </td>
-                        <td>
-                          {ins.status !== 'paid' ? (
-                            <button
-                              disabled={payLoading === ins.id}
-                              className="ff-btn ff-btn-sm"
-                              style={{
-                                background: effectiveStatus === 'late' ? '#DC2626' : T.green,
-                                color: T.white,
-                                borderColor: effectiveStatus === 'late' ? '#DC2626' : T.green,
-                                fontSize: 12,
-                                opacity: payLoading === ins.id ? 0.6 : 1,
-                              }}
-                              onClick={() => handlePay(ins.id, ins.month_number)}
-                            >
-                              {payLoading === ins.id ? 'Memproses...' : '💳 Bayar'}
-                            </button>
-                          ) : (
-                            <span style={{ fontSize: 12, color: T.green, fontWeight: 600 }}>✓ Lunas</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-              }
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -558,13 +556,23 @@ function DanaTab({ campaign, onToast }) {
 // Toast
 function Toast({ message, type }) {
   return (
-    <div style={{
-      position: 'fixed', bottom: 24, right: 24, zIndex: 99999,
-      background: type === 'error' ? '#DC2626' : T.green,
-      color: T.white, padding: '12px 20px', borderRadius: 10,
-      fontSize: 14, fontWeight: 500, boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-    }}>
-      {type === 'error' ? '⚠️ ' : '✓ '}{message}
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 24,
+        right: 24,
+        zIndex: 99999,
+        background: type === 'error' ? '#DC2626' : T.green,
+        color: T.white,
+        padding: '12px 20px',
+        borderRadius: 10,
+        fontSize: 14,
+        fontWeight: 500,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+      }}
+    >
+      {type === 'error' ? '⚠️ ' : '✓ '}
+      {message}
     </div>
   );
 }
@@ -575,13 +583,13 @@ export default function UMKMDashboard({ user }) {
   const { tab: tabParam } = useParams();
   const tab = tabParam || 'overview';
 
-  const [campaign, setCampaign]         = useState(null);   // kampanye pertama (untuk Overview & DanaTab)
-  const [campaigns, setCampaigns]       = useState([]);     // semua kampanye (untuk CampaignTab)
+  const [campaign, setCampaign] = useState(null); // kampanye pertama (untuk Overview & DanaTab)
+  const [campaigns, setCampaigns] = useState([]); // semua kampanye (untuk CampaignTab)
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [toast, setToast]               = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
   const [isOpenMobileMenu, setIsOpenMobileMenu] = useState(false);
-  const [isMobile, setIsMobile]         = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -597,9 +605,7 @@ export default function UMKMDashboard({ user }) {
         const campList = campRes.data?.campaigns || campRes.data;
         let allCamps = [];
         if (Array.isArray(campList)) {
-          allCamps = campList.filter(
-            (c) => c.title && parseFloat(c.target_amount) > 0 && c.status !== 'rejected'
-          );
+          allCamps = campList.filter((c) => c.title && parseFloat(c.target_amount) > 0 && c.status !== 'rejected');
         } else if (campList && typeof campList === 'object' && campList.title) {
           allCamps = campList.status !== 'rejected' ? [campList] : [];
         }
@@ -633,7 +639,12 @@ export default function UMKMDashboard({ user }) {
   };
 
   const initials = user?.name
-    ? user.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+    ? user.name
+        .split(' ')
+        .map((w) => w[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
     : '?';
 
   const saldoFooter = (
@@ -654,7 +665,6 @@ export default function UMKMDashboard({ user }) {
 
   return (
     <div style={{ display: 'flex', minHeight: 'calc(100vh - 56px)', position: 'relative', flexDirection: isMobile ? 'column' : 'row' }}>
-
       {toast && <Toast message={toast.message} type={toast.type} />}
 
       {/* Tombol Terapung Mobile */}
@@ -662,9 +672,17 @@ export default function UMKMDashboard({ user }) {
         <button
           onClick={() => setIsOpenMobileMenu(!isOpenMobileMenu)}
           style={{
-            position: 'fixed', bottom: 20, right: 20, zIndex: 10000,
-            background: T.green, color: T.white, border: 'none',
-            padding: '12px 24px', borderRadius: 30, fontWeight: 600, fontSize: 14,
+            position: 'fixed',
+            bottom: 20,
+            right: 20,
+            zIndex: 10000,
+            background: T.green,
+            color: T.white,
+            border: 'none',
+            padding: '12px 24px',
+            borderRadius: 30,
+            fontWeight: 600,
+            fontSize: 14,
             boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
           }}
         >
@@ -673,25 +691,40 @@ export default function UMKMDashboard({ user }) {
       )}
 
       {/* Sidebar */}
-      <div style={{
-        width: isMobile ? '100%' : 240,
-        borderRight: isMobile ? 'none' : `1px solid ${T.gray200}`,
-        padding: '1.5rem 1rem',
-        background: T.white,
-        display: isMobile ? (isOpenMobileMenu ? 'flex' : 'none') : 'flex',
-        flexDirection: 'column',
-        position: isMobile ? 'fixed' : 'sticky',
-        top: '56px', left: 0, right: 0, bottom: 0,
-        zIndex: 9999,
-        height: isMobile ? 'calc(100vh - 56px)' : 'auto',
-        overflowY: 'auto',
-      }}>
+      <div
+        style={{
+          width: isMobile ? '100%' : 240,
+          borderRight: isMobile ? 'none' : `1px solid ${T.gray200}`,
+          padding: '1.5rem 1rem',
+          background: T.white,
+          display: isMobile ? (isOpenMobileMenu ? 'flex' : 'none') : 'flex',
+          flexDirection: 'column',
+          position: isMobile ? 'fixed' : 'sticky',
+          top: '56px',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999,
+          height: isMobile ? 'calc(100vh - 56px)' : 'auto',
+          overflowY: 'auto',
+        }}
+      >
         <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: '50%', background: T.greenLight,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 14, fontWeight: 700, color: T.green, marginBottom: '0.5rem',
-          }}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              background: T.greenLight,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 14,
+              fontWeight: 700,
+              color: T.green,
+              marginBottom: '0.5rem',
+            }}
+          >
             {initials}
           </div>
           <div style={{ fontWeight: 600, fontSize: 14, color: T.gray900 }}>{user?.name || '—'}</div>
@@ -707,14 +740,23 @@ export default function UMKMDashboard({ user }) {
               return (
                 <button
                   key={link.id}
-                  onClick={() => { handleNavigation(link.id); setIsOpenMobileMenu(false); }}
+                  onClick={() => {
+                    handleNavigation(link.id);
+                    setIsOpenMobileMenu(false);
+                  }}
                   style={{
-                    display: 'flex', alignItems: 'center', width: '100%',
-                    padding: '12px 14px', borderRadius: 8, border: 'none',
-                    cursor: 'pointer', textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: '100%',
+                    padding: '12px 14px',
+                    borderRadius: 8,
+                    border: 'none',
+                    cursor: 'pointer',
+                    textAlign: 'left',
                     background: isActive ? T.greenLight : 'transparent',
                     color: isActive ? T.greenDark : T.gray700,
-                    fontWeight: isActive ? 600 : 500, fontSize: 14,
+                    fontWeight: isActive ? 600 : 500,
+                    fontSize: 14,
                   }}
                 >
                   <span style={{ marginRight: 12, fontSize: 18, color: isActive ? T.green : T.gray500 }}>{link.icon}</span>
@@ -728,13 +770,18 @@ export default function UMKMDashboard({ user }) {
       </div>
 
       {/* Konten Utama */}
-      <main style={{
-        flex: 1, padding: isMobile ? '1rem' : '2rem',
-        background: T.gray50, overflow: 'auto', width: '100%',
-      }}>
-        {tab === 'overview'     && <Overview user={user} campaign={campaign} transactions={transactions} loading={loading} navigate={navigate} />}
-        {tab === 'campaign'     && <CampaignTab campaigns={campaigns} loading={loading} navigate={navigate} />}
-        {tab === 'dana'         && <DanaTab campaign={campaign} onToast={showToast} />}
+      <main
+        style={{
+          flex: 1,
+          padding: isMobile ? '1rem' : '2rem',
+          background: T.gray50,
+          overflow: 'auto',
+          width: '100%',
+        }}
+      >
+        {tab === 'overview' && <Overview user={user} campaign={campaign} transactions={transactions} loading={loading} navigate={navigate} />}
+        {tab === 'campaign' && <CampaignTab campaigns={campaigns} loading={loading} navigate={navigate} />}
+        {tab === 'dana' && <DanaTab campaign={campaign} onToast={showToast} />}
         {tab === 'installments' && <Installments />} {/* KODE YANG DIUBAH: Tambahkan baris ini */}
       </main>
     </div>
