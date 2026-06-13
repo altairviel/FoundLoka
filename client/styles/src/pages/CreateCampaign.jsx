@@ -470,7 +470,6 @@ export default function CreateCampaign({ user, onSuccess, onCancel }) {
                   ['Total Dikembalikan', rupiah(totalReturn)],
                   ['Jenis Pengembalian', form.repayment_type === 'cicilan' ? `Cicilan bulanan (${tenorNum} bln)` : 'Lunas di akhir tenor'],
                   form.repayment_type === 'cicilan' ? ['Cicilan per bulan', rupiah(monthlyAmt)] : ['Bayar sekaligus', rupiah(totalReturn)],
-                  ['Deadline', form.deadline ? new Date(form.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Tidak ada'],
                 ]
                   .filter(Boolean)
                   .map(([k, v]) => (

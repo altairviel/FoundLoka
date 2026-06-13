@@ -367,7 +367,6 @@ export default function CampaignDetail({ role }) {
                 ['Tenor', `${tenor}${typeof tenor === 'number' ? ' bulan' : ''}`],
                 ['Est. cicilan/bln', monthly ? fmt(monthly) : '—'],
                 ['Investor', `${c.investor_count ?? investors.length} orang`],
-                ['Deadline', c.deadline ? new Date(c.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14 }}>
                   <span style={{ color: T.gray500 }}>{k}</span>
